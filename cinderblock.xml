@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cinder>
+<block
+	name="Cinder-HTTP(S)"
+	id="org.libcinder.HTTPS"
+	author="Cinder Project, Ryan Bartley"
+	license="BSD, Boost"
+	summary="Implements http and https protocols with openssl as the security."
+	core="true"
+	>
+	<supports os="macosx" />
+	<supports os="msw" />
+
+	<headerPattern>src/cinder/http/*.hpp</headerPattern>
+	<includePath>src</includePath>
+	<includePath system="true">lib/include</includePath>
+	<platform os="macosx">
+		<staticLibrary>lib/lib_osx/libcrypto.a</staticLibrary>
+		<staticLibrary>lib/lib_osx/libssl.a</staticLibrary>
+	</platform>
+	<platform os="msw">
+		<staticLibrary>lib/msw/OpenCL.lib</staticLibrary>
+	</platform>
+</block>
+</cinder>
