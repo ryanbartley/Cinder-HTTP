@@ -36,17 +36,8 @@ enum class protocol {
 	file
 };
 	
-enum class Process {
-	RESOLVE,
-	OPEN,
-	CONNECT,
-	HANDSHAKE,
-	REQUEST,
-	RESPONSE
-};
-	
-using ResponseHandler = std::function<void( asio::error_code, Response )>;
-using ErrorHandler = std::function<void( asio::error_code, Process, const std::shared_ptr<url> &, Response )>;
+using ResponseHandler = std::function<void( asio::error_code, ResponseRef )>;
+using ErrorHandler = std::function<void( asio::error_code, const std::shared_ptr<url> &, ResponseRef )>;
 	
 using SessionRef = std::shared_ptr<class Session>;
 
@@ -97,13 +88,14 @@ private:
 		std::make_shared<detail::Responder<Session>>(
 			shared_from_this() )->read();
 	}
-	void onResponse( asio::error_code ec, Response response )
+	void onResponse( asio::error_code ec )
 	{
 		responseHandler( ec, response );
 	}
 	
-	void onError( asio::error_code ec ) {
-		errorHandler( ec, Process::CONNECT, url, Response() );
+	void onError( asio::error_code ec ) 
+	{
+		errorHandler( ec, url, response );
 	}
 	
 	asio::io_service		&io_service;
@@ -112,6 +104,7 @@ private:
 	ResponseHandler			responseHandler;
 	ErrorHandler			errorHandler;
 	RequestRef				request;
+	ResponseRef				response;
 	
 	std::shared_ptr<url>	url;
 	asio::ip::tcp::endpoint	endpoint;
@@ -179,13 +172,14 @@ private:
 		std::make_shared<detail::Responder<SslSession>>(
 			shared_from_this() )->read();
 	}
-	void onResponse( asio::error_code ec, Response response )
+	void onResponse( asio::error_code ec )
 	{
 		responseHandler( ec, response );
 	}
 	
-	void onError( asio::error_code ec ) {
-		errorHandler( ec, Process::CONNECT, url, Response() );
+	void onError( asio::error_code ec ) 
+	{
+		errorHandler( ec, url, response );
 	}
 	
 	asio::io_service		&io_service;
@@ -195,6 +189,7 @@ private:
 	ResponseHandler			responseHandler;
 	ErrorHandler			errorHandler;
 	RequestRef				request;
+	ResponseRef				response;
 	
 	std::shared_ptr<url>	url;
 	asio::ip::tcp::endpoint	endpoint;

@@ -38,15 +38,16 @@ void TestApp::makeRequest( std::shared_ptr<http::url> url )
 	request->appendHeader( http::Connection( http::Connection::Type::CLOSE ) );
 	request->appendHeader( http::Accept() );
 	
-	auto onComplete = [&]( asio::error_code ec, http::Response response ) {
-		texture = ci::gl::Texture::create( loadImage( ci::DataSourceBuffer::create( response.getContent() ),
+	auto onComplete = [&]( asio::error_code ec, http::ResponseRef response ) {
+		texture = ci::gl::Texture::create( loadImage( ci::DataSourceBuffer::create( response->getContent() ),
 													 ImageSource::Options(), ".jpg" ) );
 	};
-	auto onError = []( asio::error_code ec, http::Process process, const std::shared_ptr<http::url> &url, http::Response response ){
-		CI_LOG_E( ec.message() << " val: " << ec.value() << " Process: " << static_cast<uint32_t>( process )
-				 << " Url: " << url->to_string() );
-		std::cout << "Headers: " << std::endl;
-		std::cout << response.getHeaders() << endl;
+	auto onError = []( asio::error_code ec, const std::shared_ptr<http::url> &url, http::ResponseRef response ){
+		CI_LOG_E( ec.message() << " val: " << ec.value() << " Url: " << url->to_string() );
+		if( response ) {
+			app::console() << "Headers: " << std::endl;
+			app::console() << response->getHeaders() << endl;
+		}
 	};
 	
 	if( url->port() == 80 ) {

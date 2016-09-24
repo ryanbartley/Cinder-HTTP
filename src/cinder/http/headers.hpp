@@ -52,6 +52,7 @@ struct Connection {
 		switch( type ) {
 			case Type::CLOSE: return "close";
 			case Type::KEEP_ALIVE : return "keep-alive";
+			default: return "close";
 		}
 	}
 	static const char* key() { return "Connection"; }
@@ -73,11 +74,11 @@ struct Content {
 	{}
 	
 	struct Length {
-		Length( uint32_t length ) : length( length ) {}
+		Length( size_t length ) : length( length ) {}
 		std::string value() const { return std::to_string( length ); }
 		static const char* key() { return "Content-Length"; }
 	private:
-		uint32_t length;
+		size_t length;
 	};
 	
 	struct Type {

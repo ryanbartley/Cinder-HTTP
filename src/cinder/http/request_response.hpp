@@ -63,7 +63,9 @@ struct Request {
 					versionMinor;
 	HeaderSet		headerSet;
 };
-	
+
+using ResponseRef = std::shared_ptr<struct Response>;
+
 struct Response {
 	
 	//! Returns a pair of uint32_t representing the major, minor version number of HTTP
