@@ -16,10 +16,15 @@
 	<includePath system="true">lib/include</includePath>
 	<platform os="macosx">
 		<staticLibrary>lib/lib_osx/libcrypto.a</staticLibrary>
-		<staticLibrary>lib/lib_osx/libssl.a</staticLibrary>
+		<staticLibrary>lib/osx/libssl.a</staticLibrary>
 	</platform>
-	<platform os="msw">
-		<staticLibrary>lib/msw/OpenCL.lib</staticLibrary>
+	<platform os="msw" config="debug">
+		<staticLibrary>lib/msw/Debug/libeay32MT.lib</staticLibrary>
+		<staticLibrary>lib/msw/Debug/ssleay32MT.lib</staticLibrary>
+	</platform>
+	<platform os="msw" config="release">
+		<staticLibrary>lib/msw/Release/libeay32MT.lib</staticLibrary>
+		<staticLibrary>lib/msw/Release/ssleay32MT.lib</staticLibrary>
 	</platform>
 </block>
 </cinder>

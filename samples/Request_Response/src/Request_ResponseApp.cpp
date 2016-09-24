@@ -21,12 +21,12 @@ public:
 	std::shared_ptr<ci::http::SslSession>	sslSession;
 	ci::gl::TextureRef texture;
 	std::shared_ptr<ci::http::url> httpUrl, httpsUrl;
-	bool useHttp = false;
+	bool useHttp = false; 
 };
 
 void TestApp::setup()
 {
-	httpUrl = std::make_shared<http::url>( "http://cdn.tutsplus.com/net/authors/jeremymcpeak/http2-http.jpg" );
+	httpUrl = std::make_shared<http::url>( "http://www.lingosolutions.co.uk/wp-content/uploads/2016/05/HTTP-wallpaper.jpg" );
 	httpsUrl = std::make_shared<http::url>( "https://upload.wikimedia.org/wikipedia/commons/d/da/Internet2.jpg" );
 	
 	makeRequest( httpUrl );
@@ -78,7 +78,7 @@ void TestApp::draw()
 	
 	gl::setMatricesWindow( getWindowSize() );
 	if( texture )
-		gl::draw( texture, texture->getBounds(), Rectf( 0, 0, getWindowWidth(), getWindowHeight() ) );
+		gl::draw( texture, texture->getBounds(), Rectf( vec2(0.0f), vec2(getWindowSize()) ) );
 }
 
 CINDER_APP( TestApp, RendererGl )

@@ -299,8 +299,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
 					"\"$(CINDER_PATH)/lib/libcinder_d.a\"",
-					../../../lib/lib_osx/libcrypto.a,
-					../../../lib/lib_osx/libssl.a,
+					../../../lib/osx/libcrypto.a,
+					../../../lib/osx/libssl.a,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = Request_Response;
@@ -331,8 +331,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OTHER_LDFLAGS = (
 					"\"$(CINDER_PATH)/lib/libcinder.a\"",
-					../../../lib/lib_osx/libcrypto.a,
-					../../../lib/lib_osx/libssl.a,
+					../../../lib/osx/libcrypto.a,
+					../../../lib/osx/libssl.a,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = Request_Response;
