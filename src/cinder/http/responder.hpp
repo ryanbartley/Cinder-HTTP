@@ -124,7 +124,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 			[]( const HeaderSet::Header &a, const HeaderSet::Header &b ) {
 				return a.first < b.first;
 			});
-			std::cout << mResponse.getHeaders() << std::endl;
+			CI_LOG_D( mResponse.getHeaders() );
 			if( auto contentLengthHeader = mResponse.headerSet.findHeader( Content::Length::key() ) ) {
 				content_length = atoi(contentLengthHeader->second.c_str());
 				if( content_length > 0 )

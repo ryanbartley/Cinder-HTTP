@@ -109,7 +109,8 @@ inline void Request::process( std::ostream &request_stream ) const
 		request_stream << header.first << ": " << header.second << "\r\n";
 	}
 	request_stream << "\r\n";
-	request_stream << headerSet.getContent();
+	auto content = headerSet.getContent();
+	request_stream.write( static_cast<const char*>( content->getData() ), content->getSize() );
 }
 	
 inline std::ostream& operator<<( std::ostream &stream, const Request &request )
