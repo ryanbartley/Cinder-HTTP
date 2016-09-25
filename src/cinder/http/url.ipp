@@ -19,7 +19,7 @@
 namespace cinder {
 namespace http {
 
-unsigned short url::port() const
+unsigned short Url::port() const
 {
   if (!port_.empty())
     return std::atoi(port_.c_str());
@@ -32,21 +32,21 @@ unsigned short url::port() const
   return 0;
 }
 
-std::string url::path() const
+std::string Url::path() const
 {
   std::string tmp_path;
   unescape_path(path_, tmp_path);
   return tmp_path;
 }
 	
-void url::set_protocol( std::string protocol )
+void Url::set_protocol( std::string protocol )
 {
   protocol_.resize( protocol.length() );
   for (std::size_t i = 0; i < protocol.length(); ++i)
 	protocol_[i] = std::tolower(protocol[i]);
 }
 	
-url& url::append_path( std::string path )
+Url& Url::append_path( std::string path )
 {
 	if(path_.empty() || path_ == "/") {
 		if(path.front() != '/')
@@ -67,7 +67,7 @@ url& url::append_path( std::string path )
 	return *this;
 }
 	
-url& url::add_query( std::string query )
+Url& Url::add_query( std::string query )
 {
 	if( ! query_.empty() )
 		query_.append( "&" );
@@ -75,7 +75,7 @@ url& url::add_query( std::string query )
 	return *this;
 }
 	
-url& url::add_query( std::string key, std::string value )
+Url& Url::add_query( std::string key, std::string value )
 {
 	if( ! query_.empty() )
 		query_.append( "&" );
@@ -83,7 +83,7 @@ url& url::add_query( std::string key, std::string value )
 	return *this;
 }
 
-std::string url::to_string(int components) const
+std::string Url::to_string(int components) const
 {
   std::string s;
 
@@ -134,9 +134,9 @@ std::string url::to_string(int components) const
   return s;
 }
 
-url url::from_string(const char* s, asio::error_code& ec)
+Url Url::from_string(const char* s, asio::error_code& ec)
 {
-  url new_url;
+  Url new_url;
 
   // Protocol.
   std::size_t length = std::strcspn(s, ":");
@@ -149,17 +149,17 @@ url url::from_string(const char* s, asio::error_code& ec)
   if (*s++ != ':')
   {
     ec = make_error_code(std::errc::invalid_argument);
-    return url();
+    return Url();
   }
   if (*s++ != '/')
   {
     ec = make_error_code(std::errc::invalid_argument);
-    return url();
+    return Url();
   }
   if (*s++ != '/')
   {
     ec = make_error_code(std::errc::invalid_argument);
-    return url();
+    return Url();
   }
 
   // UserInfo.
@@ -186,7 +186,7 @@ url url::from_string(const char* s, asio::error_code& ec)
     if (s[length] != ']')
     {
       ec = make_error_code(std::errc::invalid_argument);
-      return url();
+      return Url();
     }
     new_url.host_.assign(s, s + length);
     new_url.ipv6_host_ = true;
@@ -194,7 +194,7 @@ url url::from_string(const char* s, asio::error_code& ec)
     if (std::strcspn(s, ":/?#") != 0)
     {
       ec = make_error_code(std::errc::invalid_argument);
-      return url();
+      return Url();
     }
   }
   else
@@ -211,7 +211,7 @@ url url::from_string(const char* s, asio::error_code& ec)
     if (length == 0)
     {
       ec = make_error_code(std::errc::invalid_argument);
-      return url();
+      return Url();
     }
     new_url.port_.assign(s, s + length);
     for (std::size_t i = 0; i < new_url.port_.length(); ++i)
@@ -219,7 +219,7 @@ url url::from_string(const char* s, asio::error_code& ec)
       if (!std::isdigit(new_url.port_[i]))
       {
         ec = make_error_code(std::errc::invalid_argument);
-        return url();
+        return Url();
       }
     }
     s += length;
@@ -234,7 +234,7 @@ url url::from_string(const char* s, asio::error_code& ec)
     if (!unescape_path(new_url.path_, tmp_path))
     {
       ec = make_error_code(std::errc::invalid_argument);
-      return url();
+      return Url();
     }
     s += length;
   }
@@ -257,10 +257,10 @@ url url::from_string(const char* s, asio::error_code& ec)
   return new_url;
 }
 
-url url::from_string(const char* s)
+Url Url::from_string(const char* s)
 {
   asio::error_code ec;
-  url new_url(from_string(s, ec));
+  Url new_url(from_string(s, ec));
   if (ec)
   {
     std::system_error ex(ec);
@@ -269,17 +269,17 @@ url url::from_string(const char* s)
   return new_url;
 }
 
-url url::from_string(const std::string& s, asio::error_code& ec)
+Url Url::from_string(const std::string& s, asio::error_code& ec)
 {
   return from_string(s.c_str(), ec);
 }
 
-url url::from_string(const std::string& s)
+Url Url::from_string(const std::string& s)
 {
   return from_string(s.c_str());
 }
 
-bool url::unescape_path(const std::string& in, std::string& out)
+bool Url::unescape_path(const std::string& in, std::string& out)
 {
   out.clear();
   out.reserve(in.size());
@@ -332,7 +332,7 @@ bool url::unescape_path(const std::string& in, std::string& out)
   return true;
 }
 
-bool operator==(const url& a, const url& b)
+bool operator==(const Url& a, const Url& b)
 {
   return a.protocol_ == b.protocol_
     && a.user_info_ == b.user_info_
@@ -343,12 +343,12 @@ bool operator==(const url& a, const url& b)
     && a.fragment_ == b.fragment_;
 }
 
-bool operator!=(const url& a, const url& b)
+bool operator!=(const Url& a, const Url& b)
 {
   return !(a == b);
 }
 
-bool operator<(const url& a, const url& b)
+bool operator<(const Url& a, const Url& b)
 {
   if (a.protocol_ < b.protocol_)
     return true;

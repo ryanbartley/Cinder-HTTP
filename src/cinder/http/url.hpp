@@ -18,8 +18,6 @@
 namespace cinder {
 namespace http {
 
-using urlref = std::shared_ptr<class url>;
-
 /// The class @c url enables parsing and accessing the components of URLs.
 /**
  * @par Example
@@ -49,7 +47,7 @@ using urlref = std::shared_ptr<class url>;
  * @e Header: @c <urdl/url.hpp> @n
  * @e Namespace: @c urdl
  */
-class url
+class Url
 {
 public:
   /// Constructs an object of class @c url.
@@ -59,7 +57,7 @@ public:
    * @c query(), @c fragment() all return an empty string, and @c port() returns
    * 0.
    */
-  url()
+  Url()
     : ipv6_host_(false)
   {
   }
@@ -70,7 +68,7 @@ public:
    *
    * @throws std::system_error Thrown when the URL string is invalid.
    */
-  url(const char* s)
+  Url(const char* s)
     : ipv6_host_(false)
   {
     *this = from_string(s);
@@ -82,7 +80,7 @@ public:
    *
    * @throws std::system_error Thrown when the URL string is invalid.
    */
-  url(const std::string& s)
+  Url(const std::string& s)
     : ipv6_host_(false)
   {
     *this = from_string(s);
@@ -100,7 +98,7 @@ public:
 	
   inline void set_protocol( std::string protocol );
 	
-  url& protocol( std::string protocol )
+  Url& protocol( std::string protocol )
   {
 	set_protocol( std::move( protocol ) );
 	return *this;
@@ -121,7 +119,7 @@ public:
 	user_info_ = std::move( user_info );
   }
 	
-  url& user_info( std::string user_info )
+  Url& user_info( std::string user_info )
   {
 	set_user_info( std::move( user_info ) );
 	return *this;
@@ -141,7 +139,7 @@ public:
 	host_ = std::move( host );
   }
 	
-  url& host( std::string host )
+  Url& host( std::string host )
   {
 	set_host( std::move( host ) );
 	return *this;
@@ -167,13 +165,13 @@ public:
 	port_ = std::to_string( port );
   }
 	
-  url& port( std::string port )
+  Url& port( std::string port )
   {
 	set_port( std::move( port ) );
 	return *this;
   }
 	
-  url& port( uint16_t port )
+  Url& port( uint16_t port )
   {
 	set_port( port );
 	return *this;
@@ -194,13 +192,13 @@ public:
 	path_ = std::move( path );
   }
 	
-  url& path( std::string path )
+  Url& path( std::string path )
   {
 	set_path( std::move( path ) );
 	return *this;
   }
 	
-  inline url& append_path( std::string path );
+  inline Url& append_path( std::string path );
 
   /// Gets the query component of the URL.
   /**
@@ -215,8 +213,8 @@ public:
     return query_;
   }
 	
-  inline url& add_query( std::string query );
-  inline url& add_query( std::string key, std::string value );
+  inline Url& add_query( std::string query );
+  inline Url& add_query( std::string key, std::string value );
 
   /// Gets the fragment component of the URL.
   /**
@@ -232,7 +230,7 @@ public:
 	fragment_ = std::move( fragment );
   }
 	
-  url& fragment( std::string fragment )
+  Url& fragment( std::string fragment )
   {
 	set_fragment( std::move( fragment ) );
 	return *this;
@@ -282,7 +280,7 @@ public:
    *
    * @throws std::system_error Thrown when the URL string is invalid.
    */
-  inline static url from_string(const char* s);
+  inline static Url from_string(const char* s);
 
   /// Converts a string representation of a URL into an object of class @c url.
   /**
@@ -292,7 +290,7 @@ public:
    *
    * @returns A @c url object corresponding to the specified string.
    */
-  inline static url from_string(const char* s,
+  inline static Url from_string(const char* s,
       asio::error_code& ec);
 
   /// Converts a string representation of a URL into an object of class @c url.
@@ -303,7 +301,7 @@ public:
    *
    * @throws asio::system_error Thrown when the URL string is invalid.
    */
-  inline static url from_string(const std::string& s);
+  inline static Url from_string(const std::string& s);
 
   /// Converts a string representation of a URL into an object of class @c url.
   /**
@@ -313,17 +311,17 @@ public:
    *
    * @returns A @c url object corresponding to the specified string.
    */
-  inline static url from_string(const std::string& s,
+  inline static Url from_string(const std::string& s,
       asio::error_code& ec);
 
   /// Compares two @c url objects for equality.
-  friend inline bool operator==(const url& a, const url& b);
+  friend inline bool operator==(const Url& a, const Url& b);
 
   /// Compares two @c url objects for inequality.
-  friend inline bool operator!=(const url& a, const url& b);
+  friend inline bool operator!=(const Url& a, const Url& b);
 
   /// Compares two @c url objects for ordering.
-  friend inline bool operator<(const url& a, const url& b);
+  friend inline bool operator<(const Url& a, const Url& b);
 
 private:
   inline static bool unescape_path(const std::string& in, std::string& out);
@@ -337,6 +335,8 @@ private:
   std::string fragment_;
   bool ipv6_host_;
 };
+
+using UrlRef = std::shared_ptr<Url>;
 
 } // namespace http
 } // namespace cinder

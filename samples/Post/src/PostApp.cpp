@@ -46,7 +46,7 @@ class PostApp : public App {
 
 void PostApp::setup()
 {
-	auto url = make_shared<http::url>( "http://httpbin.org/post" );
+	auto url = make_shared<http::Url>( "http://httpbin.org/post" );
 	auto request = std::make_shared<http::Request>( http::RequestMethod::POST, url );
 	request->appendHeader( http::Connection( http::Connection::Type::CLOSE ) );
 	request->appendHeader( http::Accept() );
@@ -71,7 +71,7 @@ void PostApp::setup()
 			CI_LOG_I( value.toStyledString() );
 		}
 	};
-	auto onError = []( asio::error_code ec, const std::shared_ptr<http::url> &url, http::ResponseRef response ) {
+	auto onError = []( asio::error_code ec, const http::UrlRef &url, http::ResponseRef response ) {
 		CI_LOG_E( ec.message() << " val: " << ec.value() << " Url: " << url->to_string() );
 		if( response ) {
 			app::console() << "Headers: " << std::endl;
@@ -80,11 +80,11 @@ void PostApp::setup()
 	};
 
 	if( url->port() == 80 ) {
-		session = std::make_shared<http::Session>( url, request, onComplete, onError );
+		session = std::make_shared<http::Session>( request, onComplete, onError );
 		session->start();
 	}
 	else if( url->port() == 443 ) {
-		sslSession = std::make_shared<http::SslSession>( url, request, onComplete, onError );
+		sslSession = std::make_shared<http::SslSession>( request, onComplete, onError );
 		sslSession->start();
 	}
 }

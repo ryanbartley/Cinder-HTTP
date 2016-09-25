@@ -37,23 +37,22 @@ enum class protocol {
 };
 	
 using ResponseHandler = std::function<void( asio::error_code, ResponseRef )>;
-using ErrorHandler = std::function<void( asio::error_code, const urlref &, ResponseRef )>;
+using ErrorHandler = std::function<void( asio::error_code, const UrlRef &, ResponseRef )>;
 	
 using SessionRef = std::shared_ptr<class Session>;
 
 class Session : public std::enable_shared_from_this<Session> {
 public:
 	
-	Session( urlref url, RequestRef request,
-			 ResponseHandler responseHandler, ErrorHandler errorHandler,
+	Session( RequestRef request, ResponseHandler responseHandler, ErrorHandler errorHandler,
 			 asio::io_service &io_service = ci::app::App::get()->io_service() )
 	: io_service( io_service ), socket( io_service ), responseHandler( responseHandler ),
-	errorHandler( errorHandler ), mSessionUrl( url ), request( request ) {}
+	errorHandler( errorHandler ), mSessionUrl( request->requestUrl ), request( request ) {}
 	~Session() = default;
 	
 	asio::io_service&	get_io_service() { return io_service; }
-	const urlref&		getUrl() const { return mSessionUrl; }
-	urlref&			getUrl() { return mSessionUrl; }
+	const UrlRef&		getUrl() const { return mSessionUrl; }
+	UrlRef&				getUrl() { return mSessionUrl; }
 	
 	const asio::ip::tcp::endpoint&	getEndpoint() const { return endpoint; }
 	asio::ip::tcp::endpoint&	getEndpoint() { return endpoint; }
@@ -103,10 +102,10 @@ private:
 	
 	ResponseHandler		responseHandler;
 	ErrorHandler		errorHandler;
-	RequestRef		request;
-	ResponseRef		response;
+	RequestRef			request;
+	ResponseRef			response;
 	
-	urlref			mSessionUrl;
+	UrlRef					mSessionUrl;
 	asio::ip::tcp::endpoint	endpoint;
 	
 	friend struct detail::Connector<Session>;
@@ -122,22 +121,21 @@ using SslSessionRef = std::shared_ptr<class SslSession>;
 class SslSession : public std::enable_shared_from_this<SslSession> {
 public:
 	
-	SslSession( urlref url, RequestRef request,
-			    ResponseHandler responseHandler, ErrorHandler errorHandler,
+	SslSession( RequestRef request, ResponseHandler responseHandler, ErrorHandler errorHandler,
 			    asio::io_service &io_service = ci::app::App::get()->io_service() )
 	: io_service( io_service ), context(asio::ssl::context::tlsv12_client),
-	socket( io_service, context ), mSessionUrl( url ), responseHandler( responseHandler ),
+	socket( io_service, context ), mSessionUrl( request->requestUrl ), responseHandler( responseHandler ),
 	errorHandler( errorHandler ), request( request )
 	{
 		context.set_default_verify_paths();
-		auto host = url->host();
+		auto host = mSessionUrl->host();
 		socket.set_verify_callback(asio::ssl::rfc2818_verification{host});
 	}
 	~SslSession() = default;
 	
 	asio::io_service&		get_io_service() { return io_service; }
-	const std::shared_ptr<url>&	getUrl() const { return mSessionUrl; }
-	std::shared_ptr<url>&		getUrl() { return mSessionUrl; }
+	const UrlRef&			getUrl() const { return mSessionUrl; }
+	UrlRef&					getUrl() { return mSessionUrl; }
 	
 	const asio::ip::tcp::endpoint&	getEndpoint() const { return endpoint; }
 	asio::ip::tcp::endpoint&		getEndpoint() { return endpoint; }
@@ -188,10 +186,10 @@ private:
 	
 	ResponseHandler		responseHandler;
 	ErrorHandler		errorHandler;
-	RequestRef		request;
-	ResponseRef		response;
+	RequestRef			request;
+	ResponseRef			response;
 	
-	urlref			mSessionUrl;
+	UrlRef					mSessionUrl;
 	asio::ip::tcp::endpoint	endpoint;
 	
 	friend struct detail::Connector<SslSession>;
