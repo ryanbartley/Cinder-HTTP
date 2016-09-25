@@ -27,7 +27,7 @@ public:
 	
 	void request()
 	{
-		std::ostream request_stream( &mRequestBuffer, std::ostream::binary );
+		std::ostream request_stream( &mRequestBuffer );
 		mRequest->process( request_stream );
 		
 		asio::async_write(this->mSession->socket, mRequestBuffer,

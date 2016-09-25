@@ -37,31 +37,31 @@ enum class protocol {
 };
 	
 using ResponseHandler = std::function<void( asio::error_code, ResponseRef )>;
-using ErrorHandler = std::function<void( asio::error_code, const std::shared_ptr<url> &, ResponseRef )>;
+using ErrorHandler = std::function<void( asio::error_code, const urlref &, ResponseRef )>;
 	
 using SessionRef = std::shared_ptr<class Session>;
 
 class Session : public std::enable_shared_from_this<Session> {
 public:
 	
-	Session( std::shared_ptr<url> url, RequestRef request,
+	Session( urlref url, RequestRef request,
 			 ResponseHandler responseHandler, ErrorHandler errorHandler,
 			 asio::io_service &io_service = ci::app::App::get()->io_service() )
 	: io_service( io_service ), socket( io_service ), responseHandler( responseHandler ),
-	errorHandler( errorHandler ), url( url ), request( request ) {}
+	errorHandler( errorHandler ), mSessionUrl( url ), request( request ) {}
 	~Session() = default;
 	
 	asio::io_service&	get_io_service() { return io_service; }
-	const std::shared_ptr<url>&			getUrl() const { return url; }
-	std::shared_ptr<url>&				getUrl() { return url; }
+	const urlref&		getUrl() const { return mSessionUrl; }
+	urlref&			getUrl() { return mSessionUrl; }
 	
 	const asio::ip::tcp::endpoint&	getEndpoint() const { return endpoint; }
-	asio::ip::tcp::endpoint&		getEndpoint() { return endpoint; }
+	asio::ip::tcp::endpoint&	getEndpoint() { return endpoint; }
 	
 	void start()
 	{
-		auto con = std::make_shared<detail::Connector<Session>>( shared_from_this(), socket );
-		con->start();
+		std::make_shared<detail::Connector<Session>>( 
+				shared_from_this(), socket )->start();
 	}
 	
 	void start( asio::ip::tcp::endpoint endpoint )
@@ -79,7 +79,7 @@ private:
 	void onHandshake( asio::error_code ec )
 	{
 		if( ! request )
-			request = std::make_shared<Request>( RequestMethod::GET, url );
+			request = std::make_shared<Request>( RequestMethod::GET, mSessionUrl );
 		std::make_shared<detail::Requester<Session>>(
 			shared_from_this(), std::move( request ) )->request();
 	}
@@ -95,18 +95,18 @@ private:
 	
 	void onError( asio::error_code ec ) 
 	{
-		errorHandler( ec, url, response );
+		errorHandler( ec, mSessionUrl, response );
 	}
 	
-	asio::io_service		&io_service;
+	asio::io_service	&io_service;
 	asio::ip::tcp::socket	socket;
 	
-	ResponseHandler			responseHandler;
-	ErrorHandler			errorHandler;
-	RequestRef				request;
-	ResponseRef				response;
+	ResponseHandler		responseHandler;
+	ErrorHandler		errorHandler;
+	RequestRef		request;
+	ResponseRef		response;
 	
-	std::shared_ptr<url>	url;
+	urlref			mSessionUrl;
 	asio::ip::tcp::endpoint	endpoint;
 	
 	friend struct detail::Connector<Session>;
@@ -122,11 +122,11 @@ using SslSessionRef = std::shared_ptr<class SslSession>;
 class SslSession : public std::enable_shared_from_this<SslSession> {
 public:
 	
-	SslSession( std::shared_ptr<url> url, RequestRef request,
+	SslSession( urlref url, RequestRef request,
 			    ResponseHandler responseHandler, ErrorHandler errorHandler,
 			    asio::io_service &io_service = ci::app::App::get()->io_service() )
 	: io_service( io_service ), context(asio::ssl::context::tlsv12_client),
-	socket( io_service, context ), url( url ), responseHandler( responseHandler ),
+	socket( io_service, context ), mSessionUrl( url ), responseHandler( responseHandler ),
 	errorHandler( errorHandler ), request( request )
 	{
 		context.set_default_verify_paths();
@@ -135,9 +135,9 @@ public:
 	}
 	~SslSession() = default;
 	
-	asio::io_service&	get_io_service() { return io_service; }
-	const std::shared_ptr<url>&			getUrl() const { return url; }
-	std::shared_ptr<url>&				getUrl() { return url; }
+	asio::io_service&		get_io_service() { return io_service; }
+	const std::shared_ptr<url>&	getUrl() const { return mSessionUrl; }
+	std::shared_ptr<url>&		getUrl() { return mSessionUrl; }
 	
 	const asio::ip::tcp::endpoint&	getEndpoint() const { return endpoint; }
 	asio::ip::tcp::endpoint&		getEndpoint() { return endpoint; }
@@ -163,7 +163,7 @@ private:
 	void onHandshake( asio::error_code ec )
 	{
 		if( ! request )
-			request = std::make_shared<Request>( RequestMethod::GET, url );
+			request = std::make_shared<Request>( RequestMethod::GET, mSessionUrl );
 		std::make_shared<detail::Requester<SslSession>>(
 			shared_from_this(), std::move( request ) )->request();
 	}
@@ -179,19 +179,19 @@ private:
 	
 	void onError( asio::error_code ec ) 
 	{
-		errorHandler( ec, url, response );
+		errorHandler( ec, mSessionUrl, response );
 	}
 	
-	asio::io_service		&io_service;
-	asio::ssl::context		context;
+	asio::io_service	&io_service;
+	asio::ssl::context	context;
 	asio::ssl::stream<asio::ip::tcp::socket> socket;
 	
-	ResponseHandler			responseHandler;
-	ErrorHandler			errorHandler;
-	RequestRef				request;
-	ResponseRef				response;
+	ResponseHandler		responseHandler;
+	ErrorHandler		errorHandler;
+	RequestRef		request;
+	ResponseRef		response;
 	
-	std::shared_ptr<url>	url;
+	urlref			mSessionUrl;
 	asio::ip::tcp::endpoint	endpoint;
 	
 	friend struct detail::Connector<SslSession>;

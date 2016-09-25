@@ -38,15 +38,15 @@ private:
 	void on_finalize_chunks( asio::error_code ec, size_t lengthRead );
 	
 	std::shared_ptr<SessionType>	mSession;
-	asio::streambuf					mReplyBuffer;
-	ResponseRef						mResponse;
-	std::vector<uint8_t>			contentBuffer;
-	size_t							writeHead{0}, content_length{0}, current_chunk_length{0};
+	asio::streambuf			mReplyBuffer;
+	ResponseRef			mResponse;
+	std::vector<uint8_t>		contentBuffer;
+	size_t				writeHead{0}, content_length{0}, current_chunk_length{0};
 };
 
 template<typename SessionType>
 Responder<SessionType>::Responder( std::shared_ptr<SessionType> session )
-: mSession( std::move( session ) ), mResponse( make_shared<Response>() )
+: mSession( std::move( session ) ), mResponse( std::make_shared<Response>() )
 {
 	mSession->response = mResponse;
 }

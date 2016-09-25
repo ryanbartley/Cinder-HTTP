@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <memory>
 
 #include "url.hpp"
 #include "headers.hpp"
@@ -21,7 +22,7 @@ using RequestRef = std::shared_ptr<struct Request>;
 struct Request {
 	//! Constructs the request with /a requestMethod and /a url. Also, sets two 
 	//! headers, "Accepts: */*" and "Connection: close"
-	Request( RequestMethod requestMethod, const std::shared_ptr<url> &url );
+	Request( RequestMethod requestMethod, const urlref &request_url );
 	Request();
 
 	//! Returns a pair of uint32_t representing the major, minor version number of HTTP
@@ -30,9 +31,9 @@ struct Request {
 	void setVersion( uint32_t major, uint32_t minor ) { versionMajor = major; versionMinor = minor; }
 
 	//! Returns a const ref to the url attached to this request
-	const std::shared_ptr<url>& getUrl() const { return url; }
+	const urlref& getUrl() const { return mRequestUrl; }
 	//! Sets the url of this request
-	void setUrl( std::shared_ptr<url> url ) { this->url = url; }
+	void setUrl( urlref requestUrl ) { this->mRequestUrl = requestUrl; }
 
 	//! Returns the RequestMethod of this request
 	RequestMethod getRequestMethod() { return requestMethod; }
@@ -58,10 +59,10 @@ struct Request {
 	void process( std::ostream &request_buffer ) const;
 
 	RequestMethod	requestMethod;
-	std::shared_ptr<url>	url;
-	uint32_t		versionMajor,
-					versionMinor;
-	HeaderSet		headerSet;
+	urlref		mRequestUrl;
+	uint32_t	versionMajor,
+			versionMinor;
+	HeaderSet 	headerSet;
 };
 
 using ResponseRef = std::shared_ptr<struct Response>;
@@ -87,8 +88,8 @@ struct Response {
 	HeaderSet	headerSet;
 };
 
-inline Request::Request( RequestMethod requestMethod, const std::shared_ptr<http::url> &url )
-: requestMethod( requestMethod ), url( url ),
+inline Request::Request( RequestMethod requestMethod, const urlref &requestUrl )
+: requestMethod( requestMethod ), mRequestUrl( requestUrl ),
 	versionMajor( 1 ), versionMinor( 1 )
 {
 }
@@ -102,10 +103,10 @@ inline void Request::appendHeader( T header )
 inline void Request::process( std::ostream &request_stream ) const
 {
 	request_stream << getRequestMethod( requestMethod ) << " ";
-	request_stream << url->to_string( url::path_component | url::query_component );
+	request_stream << mRequestUrl->to_string( url::path_component | url::query_component );
 	request_stream << " HTTP/" << versionMajor << "." << versionMinor << "\r\n";
 	request_stream << "Host: ";
-	request_stream << url->to_string( url::host_component | url::port_component );
+	request_stream << mRequestUrl->to_string( url::host_component | url::port_component );
 	request_stream << "\r\n";
 	for( auto &header : headerSet.getHeaders() ) {
 		request_stream << header.first << ": " << header.second << "\r\n";

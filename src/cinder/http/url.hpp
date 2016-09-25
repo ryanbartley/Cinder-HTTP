@@ -12,10 +12,13 @@
 #define URDL_URL_HPP
 
 #include <string>
+#include <memory>
 #include "asio/error_code.hpp"
 
 namespace cinder {
 namespace http {
+
+using urlref = std::shared_ptr<class url>;
 
 /// The class @c url enables parsing and accessing the components of URLs.
 /**
