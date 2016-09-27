@@ -131,7 +131,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 				if( content_length > 0 )
 					contentBuffer.reserve( content_length );
 				asio::async_read( mSession->socket, mReplyBuffer,
-								asio::transfer_at_least(1),
+								asio::transfer_all(),
 								std::bind( &Responder<SessionType>::on_read_content,
 										  this->shared_from_this(),
 										  std::placeholders::_1,
