@@ -15,7 +15,7 @@
 	<includePath>src</includePath>
 	<includePath system="true">lib/include</includePath>
 	<platform os="macosx">
-		<staticLibrary>lib/lib_osx/libcrypto.a</staticLibrary>
+		<staticLibrary>lib/osx/libcrypto.a</staticLibrary>
 		<staticLibrary>lib/osx/libssl.a</staticLibrary>
 	</platform>
 	<platform os="msw" config="debug">
