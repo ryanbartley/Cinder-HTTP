@@ -33,12 +33,22 @@
 		C7FB19D6124BC0D70045AFD2 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */; };
 		00A66A361965AC8800B17EB3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00A66A351965AC8800B17EB3 /* Accelerate.framework */; };
 		00748058165D41390024B57A /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 00748057165D41390024B57A /* assets */; };
-		FA1AD2A2299D4DA4ABE05913 /* Post_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 26B98B610AF44E5F9F0DD998 /* Post_Prefix.pch */; };
-		85BB5334E81C45C2A95907A9 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = AD2B5697BD814AEC871BC3F1 /* LaunchScreen.xib */; };
-		871C603370F24FA9A61B0BCB /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 31DB515E22754870996035ED /* Images.xcassets */; };
-		8A3CC1A42F284960A58C7945 /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 3B1D825914044CB5872A9E13 /* CinderApp_ios.png */; };
-		80521F1E44FC452397C4D6D9 /* Resources.h in Headers */ = {isa = PBXBuildFile; fileRef = CCB3B2926A684375B2B9B016 /* Resources.h */; };
-		237F575D1C2D40389B34293A /* PostApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C39F3D9EC7841769E1B24BC /* PostApp.cpp */; };
+		22AF7BD3196648C3806C6BC6 /* url.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 5880160477E04A6CB2BEE5B1 /* url.hpp */; };
+		B36CA6BB05BC4A2289D7862B /* responder.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 82B08C0C44BC42DDA548E6B8 /* responder.hpp */; };
+		7E572BD71B2045DEACD5E2FD /* requester.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 3F101FAD10D04F6B9369387A /* requester.hpp */; };
+		67EFBF66EB5A4E86B13F49D8 /* request_response.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 32FDD7637C574269A285D7F4 /* request_response.hpp */; };
+		79981ED30FF64D28BFB00E87 /* parsers.hpp in Headers */ = {isa = PBXBuildFile; fileRef = D3BA0E7802F3413A8BAA952E /* parsers.hpp */; };
+		1DD5CC5287DA440FBC25DC02 /* http.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E5501684D15443DB9EEBD1BC /* http.hpp */; };
+		8C4236CD719A44CE85808743 /* headers.hpp in Headers */ = {isa = PBXBuildFile; fileRef = B56D4452F831465AA7EE8B15 /* headers.hpp */; };
+		C5AA39F12DCC4C61A98F0D58 /* handshaker.hpp in Headers */ = {isa = PBXBuildFile; fileRef = BBC803540F0844FF9DEACCA8 /* handshaker.hpp */; };
+		0E613865D851479294F7D28A /* error_codes.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 2AA22341A82C471CBEA81EF7 /* error_codes.hpp */; };
+		902A7C3AA62149929582ABF2 /* connector.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 567EA798E5E34E7CB12EA727 /* connector.hpp */; };
+		A7FB0123D1D34F90A8D8C23B /* Post_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 05DD3CD8CF67406985DDF242 /* Post_Prefix.pch */; };
+		AD0741586A984C5BB185E7EB /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2D95F20F4F5148FC91C32792 /* LaunchScreen.xib */; };
+		39D1A564BD7B42A1AC423490 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C7ACDABA8594026B6287BC0 /* Images.xcassets */; };
+		4A37A712C45F404D814B396C /* CinderApp_ios.png in Resources */ = {isa = PBXBuildFile; fileRef = 520A5C68BE0D4B82A1B5D4EF /* CinderApp_ios.png */; };
+		63F4476E70BF4CCA8B56ED1E /* Resources.h in Headers */ = {isa = PBXBuildFile; fileRef = 62AD48D6BFD84B6786100711 /* Resources.h */; };
+		76C78BC837C148A2B910F218 /* PostApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7422CBE3D4EB42F289205187 /* PostApp.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,13 +67,23 @@
 		C7FB19D5124BC0D70045AFD2 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		00A66A351965AC8800B17EB3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		00748057165D41390024B57A /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../assets; sourceTree = "<group>"; };
-		8C39F3D9EC7841769E1B24BC /* PostApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; path = ../src/PostApp.cpp; sourceTree = "<group>"; name = PostApp.cpp; };
-		CCB3B2926A684375B2B9B016 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ../include/Resources.h; sourceTree = "<group>"; name = Resources.h; };
-		3B1D825914044CB5872A9E13 /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; name = CinderApp_ios.png; };
-		31DB515E22754870996035ED /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = Images.xcassets; sourceTree = "<group>"; name = Images.xcassets; };
-		AD2B5697BD814AEC871BC3F1 /* LaunchScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = LaunchScreen.xib; sourceTree = "<group>"; name = LaunchScreen.xib; };
-		25656F463B564FABB0CD98A8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; name = Info.plist; };
-		26B98B610AF44E5F9F0DD998 /* Post_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = Post_Prefix.pch; sourceTree = "<group>"; name = Post_Prefix.pch; };
+		7422CBE3D4EB42F289205187 /* PostApp.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.cpp; path = ../src/PostApp.cpp; sourceTree = "<group>"; name = PostApp.cpp; };
+		62AD48D6BFD84B6786100711 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ../include/Resources.h; sourceTree = "<group>"; name = Resources.h; };
+		520A5C68BE0D4B82A1B5D4EF /* CinderApp_ios.png */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../resources/CinderApp_ios.png; sourceTree = "<group>"; name = CinderApp_ios.png; };
+		2C7ACDABA8594026B6287BC0 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = Images.xcassets; sourceTree = "<group>"; name = Images.xcassets; };
+		2D95F20F4F5148FC91C32792 /* LaunchScreen.xib */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = LaunchScreen.xib; sourceTree = "<group>"; name = LaunchScreen.xib; };
+		920EF9AC18AD4263ACB28919 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; name = Info.plist; };
+		05DD3CD8CF67406985DDF242 /* Post_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = Post_Prefix.pch; sourceTree = "<group>"; name = Post_Prefix.pch; };
+		567EA798E5E34E7CB12EA727 /* connector.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/connector.hpp; sourceTree = "<group>"; name = connector.hpp; };
+		2AA22341A82C471CBEA81EF7 /* error_codes.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/error_codes.hpp; sourceTree = "<group>"; name = error_codes.hpp; };
+		BBC803540F0844FF9DEACCA8 /* handshaker.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/handshaker.hpp; sourceTree = "<group>"; name = handshaker.hpp; };
+		B56D4452F831465AA7EE8B15 /* headers.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/headers.hpp; sourceTree = "<group>"; name = headers.hpp; };
+		E5501684D15443DB9EEBD1BC /* http.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/http.hpp; sourceTree = "<group>"; name = http.hpp; };
+		D3BA0E7802F3413A8BAA952E /* parsers.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/parsers.hpp; sourceTree = "<group>"; name = parsers.hpp; };
+		32FDD7637C574269A285D7F4 /* request_response.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/request_response.hpp; sourceTree = "<group>"; name = request_response.hpp; };
+		3F101FAD10D04F6B9369387A /* requester.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/requester.hpp; sourceTree = "<group>"; name = requester.hpp; };
+		82B08C0C44BC42DDA548E6B8 /* responder.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/responder.hpp; sourceTree = "<group>"; name = responder.hpp; };
+		5880160477E04A6CB2BEE5B1 /* url.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = ../../../src/cinder/http/url.hpp; sourceTree = "<group>"; name = url.hpp; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,9 +150,51 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		44113159D1ED4BC591BCCC76 /* http */ = {
+			isa = PBXGroup;
+			children = (
+				567EA798E5E34E7CB12EA727 /* connector.hpp */,
+				2AA22341A82C471CBEA81EF7 /* error_codes.hpp */,
+				BBC803540F0844FF9DEACCA8 /* handshaker.hpp */,
+				B56D4452F831465AA7EE8B15 /* headers.hpp */,
+				E5501684D15443DB9EEBD1BC /* http.hpp */,
+				D3BA0E7802F3413A8BAA952E /* parsers.hpp */,
+				32FDD7637C574269A285D7F4 /* request_response.hpp */,
+				3F101FAD10D04F6B9369387A /* requester.hpp */,
+				82B08C0C44BC42DDA548E6B8 /* responder.hpp */,
+				5880160477E04A6CB2BEE5B1 /* url.hpp */,
+			);
+			name = http;
+			sourceTree = "<group>";
+		};
+		58267A5197874AAE943D506C /* cinder */ = {
+			isa = PBXGroup;
+			children = (
+				44113159D1ED4BC591BCCC76 /* http */,
+			);
+			name = cinder;
+			sourceTree = "<group>";
+		};
+		A0A6F62D44C548E0BCF961D2 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				58267A5197874AAE943D506C /* cinder */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		ED29EB08C64D48A2AA5BCE60 /* Cinder-HTTP(S) */ = {
+			isa = PBXGroup;
+			children = (
+				A0A6F62D44C548E0BCF961D2 /* src */,
+			);
+			name = "Cinder-HTTP(S)";
+			sourceTree = "<group>";
+		};
 		99692BD914FF149000DFFFFF /* Blocks */ = {
 			isa = PBXGroup;
 			children = (
+				ED29EB08C64D48A2AA5BCE60 /* Cinder-HTTP(S) */,
 			);
 			name = Blocks;
 			sourceTree = "<group>";
@@ -140,8 +202,8 @@
 		99692BD914FF149000D0A05F /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				CCB3B2926A684375B2B9B016 /* Resources.h */,
-				26B98B610AF44E5F9F0DD998 /* Post_Prefix.pch */,
+				62AD48D6BFD84B6786100711 /* Resources.h */,
+				05DD3CD8CF67406985DDF242 /* Post_Prefix.pch */,
 			);
 			name = Headers;
 			sourceTree = "<group>";
@@ -149,7 +211,7 @@
 		00692BD914FF149000D0A05E /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				8C39F3D9EC7841769E1B24BC /* PostApp.cpp */,
+				7422CBE3D4EB42F289205187 /* PostApp.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -158,10 +220,10 @@
 			isa = PBXGroup;
 			children = (
 				00748057165D41390024B57A /* assets */,
-				3B1D825914044CB5872A9E13 /* CinderApp_ios.png */,
-				31DB515E22754870996035ED /* Images.xcassets */,
-				AD2B5697BD814AEC871BC3F1 /* LaunchScreen.xib */,
-				25656F463B564FABB0CD98A8 /* Info.plist */,
+				520A5C68BE0D4B82A1B5D4EF /* CinderApp_ios.png */,
+				2C7ACDABA8594026B6287BC0 /* Images.xcassets */,
+				2D95F20F4F5148FC91C32792 /* LaunchScreen.xib */,
+				920EF9AC18AD4263ACB28919 /* Info.plist */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -214,9 +276,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				00748058165D41390024B57A /* assets in Resources */,
-				8A3CC1A42F284960A58C7945 /* CinderApp_ios.png in Resources */,
-				871C603370F24FA9A61B0BCB /* Images.xcassets in Resources */,
-				85BB5334E81C45C2A95907A9 /* LaunchScreen.xib in Resources */,
+				4A37A712C45F404D814B396C /* CinderApp_ios.png in Resources */,
+				39D1A564BD7B42A1AC423490 /* Images.xcassets in Resources */,
+				AD0741586A984C5BB185E7EB /* LaunchScreen.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -227,7 +289,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				237F575D1C2D40389B34293A /* PostApp.cpp in Sources */,
+				76C78BC837C148A2B910F218 /* PostApp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,8 +323,14 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				CINDER_PATH = "../../../../..";
-				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\"";
-				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include";
+				HEADER_SEARCH_PATHS = (
+					"\"$(CINDER_PATH)/include\"",
+					"\"../../../../Cinder-SSL/lib/include\"",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"\"$(CINDER_PATH)/include\" ../include",
+					../../../src,
+				);
 			};
 			name = Debug;
 		};
@@ -292,8 +360,14 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				CINDER_PATH = "../../../../..";
-				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\"";
-				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include";
+				HEADER_SEARCH_PATHS = (
+					"\"$(CINDER_PATH)/include\"",
+					"\"../../../../Cinder-SSL/lib/include\"",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"\"$(CINDER_PATH)/include\" ../include",
+					../../../src,
+				);
 			};
 			name = Release;
 		};
@@ -306,12 +380,16 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 				"OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" = (
-					"\"$(CINDER_PATH)/lib/libcinder-iphone_d.a\"",
+					"\"$(CINDER_PATH)/lib/ios/$(CONFIGURATION)/libcinder.a\"",
 					"-lz",
+					"\"../../../../Cinder-SSL/lib/ios/Debug/libssl.a\"",
+					"\"../../../../Cinder-SSL/lib/ios/Debug/libcrypto.a\"",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
-					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim_d.a\"",
+					"\"$(CINDER_PATH)/lib/ios-sim/$(CONFIGURATION)/libcinder.a\"",
 					"-lz",
+					"\"../../../../Cinder-SSL/lib/ios/Debug/libssl.a\"",
+					"\"../../../../Cinder-SSL/lib/ios/Debug/libcrypto.a\"",
 				);
 			};
 			name = Debug;
@@ -325,12 +403,16 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 				"OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" = (
-					"\"$(CINDER_PATH)/lib/libcinder-iphone.a\"",
+					"\"$(CINDER_PATH)/lib/ios/$(CONFIGURATION)/libcinder.a\"",
 					"-lz",
+					"\"../../../../Cinder-SSL/lib/ios/Release/libssl.a\"",
+					"\"../../../../Cinder-SSL/lib/ios/Release/libcrypto.a\"",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" = (
-					"\"$(CINDER_PATH)/lib/libcinder-iphone-sim.a\"",
+					"\"$(CINDER_PATH)/lib/ios-sim/$(CONFIGURATION)/libcinder.a\"",
 					"-lz",
+					"\"../../../../Cinder-SSL/lib/ios/Release/libssl.a\"",
+					"\"../../../../Cinder-SSL/lib/ios/Release/libcrypto.a\"",
 				);
 			};
 			name = Release;

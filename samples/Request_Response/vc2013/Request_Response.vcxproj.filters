@@ -13,19 +13,19 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
     <Filter Include="Blocks">
-      <UniqueIdentifier>{51178350-27D3-40DA-82C5-DD9CE1F6B841}</UniqueIdentifier>
+      <UniqueIdentifier>{B26F954A-D07F-4381-BEE5-E12F9D5DB4AD}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)">
-      <UniqueIdentifier>{9DD5E059-F5D3-4598-95CF-A7A57B6EDCD6}</UniqueIdentifier>
+      <UniqueIdentifier>{E9740D4C-359C-4E3A-8D67-7FD3294EF72A}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)\src">
-      <UniqueIdentifier>{1698F3CB-4073-4B4C-8A13-B75C361400E6}</UniqueIdentifier>
+      <UniqueIdentifier>{8F61DFE8-360B-48B8-8A10-B58195BE0FC9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)\src\cinder">
-      <UniqueIdentifier>{3771074F-7B97-4F9B-990A-00F01BA1CF41}</UniqueIdentifier>
+      <UniqueIdentifier>{BBA3A822-E686-4139-9569-19A3B663D0F5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)\src\cinder\http">
-      <UniqueIdentifier>{010AACAC-3017-4640-8C63-3EF8DF1770A5}</UniqueIdentifier>
+      <UniqueIdentifier>{4BE6E90E-8683-48CD-97A0-B659EAEE88FF}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

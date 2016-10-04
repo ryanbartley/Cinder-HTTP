@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -11,7 +10,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2EA3A4E1-963F-4B8A-88DA-ABAB843F964C}</ProjectGuid>
+    <ProjectGuid>{98DFBF57-58F7-4333-A668-F53974B3EBC0}</ProjectGuid>
     <RootNamespace>Request_Response</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
@@ -19,14 +18,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -46,7 +45,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\include";..\..\..\src;..\..\..\lib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\include";..\..\..\src;..\..\..\..\Cinder-SSL\lib\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x0601;_WINDOWS;NOMINMAX;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -59,8 +58,8 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder-$(PlatformToolset)_d.lib;OpenGL32.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\..\lib\msw\$(PlatformTarget);..\..\..\lib\msw\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder.lib;OpenGL32.lib;%(AdditionalDependencies);..\..\..\..\Cinder-SSL\lib\msw\Debug\libssl.a;..\..\..\..\Cinder-SSL\lib\msw\Debug\libcrypto.a</AdditionalDependencies>
+      <AdditionalLibraryDirectories>"..\..\..\..\..\lib\msw\$(PlatformTarget)";"..\..\..\..\..\lib\msw\$(PlatformTarget)\$(Configuration)\$(PlatformToolset)\"</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -70,7 +69,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\include";..\..\..\src;..\..\..\lib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\include";..\..\..\src;..\..\..\..\Cinder-SSL\lib\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN32_WINNT=0x0601;_WINDOWS;NOMINMAX;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -85,8 +84,8 @@
       <AdditionalIncludeDirectories>"..\..\..\..\..\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>cinder-$(PlatformToolset).lib;OpenGL32.lib;libeay32MT.lib;ssleay32MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\..\..\lib\msw\$(PlatformTarget);..\..\..\lib\msw\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cinder.lib;OpenGL32.lib;%(AdditionalDependencies);..\..\..\..\Cinder-SSL\lib\msw\Release\libssl.a;..\..\..\..\Cinder-SSL\lib\msw\Release\libcrypto.a</AdditionalDependencies>
+      <AdditionalLibraryDirectories>"..\..\..\..\..\lib\msw\$(PlatformTarget)\";"..\..\..\..\..\lib\msw\$(PlatformTarget)\$(Configuration)\$(PlatformToolset)\"</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Windows</SubSystem>

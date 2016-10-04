@@ -2,29 +2,17 @@
 <cinder>
 <block
 	name="Cinder-HTTP(S)"
-	id="org.libcinder.HTTPS"
+	id="org.libcinder.https"
 	author="Cinder Project, Ryan Bartley"
 	license="BSD, Boost"
 	summary="Implements http and https protocols with openssl as the security."
 	core="true"
 	>
+	<supports os="ios" />
 	<supports os="macosx" />
 	<supports os="msw" />
-
+	<requires>org.libcinder.ssl</requires>
 	<headerPattern>src/cinder/http/*.hpp</headerPattern>
 	<includePath>src</includePath>
-	<includePath system="true">lib/include</includePath>
-	<platform os="macosx">
-		<staticLibrary>lib/osx/libcrypto.a</staticLibrary>
-		<staticLibrary>lib/osx/libssl.a</staticLibrary>
-	</platform>
-	<platform os="msw" config="debug">
-		<staticLibrary>lib/msw/Debug/libeay32MT.lib</staticLibrary>
-		<staticLibrary>lib/msw/Debug/ssleay32MT.lib</staticLibrary>
-	</platform>
-	<platform os="msw" config="release">
-		<staticLibrary>lib/msw/Release/libeay32MT.lib</staticLibrary>
-		<staticLibrary>lib/msw/Release/ssleay32MT.lib</staticLibrary>
-	</platform>
 </block>
 </cinder>

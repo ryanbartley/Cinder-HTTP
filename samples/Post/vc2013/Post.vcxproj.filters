@@ -1,4 +1,3 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -14,19 +13,19 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
     <Filter Include="Blocks">
-      <UniqueIdentifier>{1BCBD613-8976-421E-943D-834B483A7026}</UniqueIdentifier>
+      <UniqueIdentifier>{53134627-0743-483C-A38E-B1316B2F88B7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)">
-      <UniqueIdentifier>{96F47CDB-9ACD-4161-A9A4-E1C8F87E7607}</UniqueIdentifier>
+      <UniqueIdentifier>{FFFBFFAA-FEE1-4DB0-A805-967EE8F09B6E}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)\src">
-      <UniqueIdentifier>{10318F22-95F5-492A-B490-722AFA6A51F8}</UniqueIdentifier>
+      <UniqueIdentifier>{7EB0D90F-CA94-4D65-B09D-1CB0505FC17D}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)\src\cinder">
-      <UniqueIdentifier>{885D8B8E-577B-4F1B-A3D6-EA3AE4B62794}</UniqueIdentifier>
+      <UniqueIdentifier>{BAC28049-377F-4E96-AE00-D6372F051985}</UniqueIdentifier>
     </Filter>
     <Filter Include="Blocks\Cinder-HTTP(S)\src\cinder\http">
-      <UniqueIdentifier>{2FAC0E39-39E4-4820-AAA5-08167E4B41FE}</UniqueIdentifier>
+      <UniqueIdentifier>{F867FDAF-2650-455A-A513-288D4BA89BDC}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
