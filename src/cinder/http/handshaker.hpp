@@ -28,7 +28,7 @@ void async_handshake( std::shared_ptr<Handshaker> handshaker, Handler handler, S
 template<typename SessionType>
 struct Handshaker : std::enable_shared_from_this<Handshaker<SessionType>> {
 	Handshaker( std::shared_ptr<SessionType> session )
-	: mSession( session ), mHost( session->mSessionUrl->host() ) {}
+	: mSession( session ), mHost( mSession->getUrl()->host() ) {}
 	
 	void handshake()
 	{

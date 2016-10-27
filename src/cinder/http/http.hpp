@@ -11,7 +11,9 @@
 #if ! defined( ASIO_STANDALONE )
 #define ASIO_STANDALONE 1
 #endif
+
 #define USING_SSL
+
 #include "asio/asio.hpp"
 #if defined( USING_SSL )
 #include "asio/ssl.hpp"
@@ -47,15 +49,14 @@ public:
 	Session( RequestRef request, ResponseHandler responseHandler, ErrorHandler errorHandler,
 			 asio::io_service &io_service = ci::app::App::get()->io_service() )
 	: io_service( io_service ), socket( io_service ), responseHandler( responseHandler ),
-	errorHandler( errorHandler ), mSessionUrl( request->requestUrl ), request( request ) {}
+	errorHandler( errorHandler ), request( request ) {}
 	~Session() = default;
 	
 	asio::io_service&	get_io_service() { return io_service; }
-	const UrlRef&		getUrl() const { return mSessionUrl; }
-	UrlRef&				getUrl() { return mSessionUrl; }
+	const UrlRef&		getUrl() const { return request->getUrl(); }
 	
 	const asio::ip::tcp::endpoint&	getEndpoint() const { return endpoint; }
-	asio::ip::tcp::endpoint&	getEndpoint() { return endpoint; }
+	asio::ip::tcp::endpoint&		getEndpoint() { return endpoint; }
 	
 	void start()
 	{
@@ -77,10 +78,8 @@ private:
 	}
 	void onHandshake( asio::error_code ec )
 	{
-		if( ! request )
-			request = std::make_shared<Request>( RequestMethod::GET, mSessionUrl );
 		std::make_shared<detail::Requester<Session>>(
-			shared_from_this(), std::move( request ) )->request();
+			shared_from_this() )->request();
 	}
 	void onRequest( asio::error_code ec )
 	{
@@ -94,10 +93,10 @@ private:
 	
 	void onError( asio::error_code ec ) 
 	{
-		errorHandler( ec, mSessionUrl, response );
+		errorHandler( ec, request->getUrl(), response );
 	}
 	
-	asio::io_service	&io_service;
+	asio::io_service		&io_service;
 	asio::ip::tcp::socket	socket;
 	
 	ResponseHandler		responseHandler;
@@ -105,13 +104,13 @@ private:
 	RequestRef			request;
 	ResponseRef			response;
 	
-	UrlRef					mSessionUrl;
 	asio::ip::tcp::endpoint	endpoint;
 	
 	friend struct detail::Connector<Session>;
 	friend struct detail::Handshaker<Session>;
 	friend struct detail::Requester<Session>;
 	friend struct detail::Responder<Session>;
+	friend struct detail::Redirector<Session>;
 };
 	
 #if defined( USING_SSL )
@@ -124,18 +123,17 @@ public:
 	SslSession( RequestRef request, ResponseHandler responseHandler, ErrorHandler errorHandler,
 			    asio::io_service &io_service = ci::app::App::get()->io_service() )
 	: io_service( io_service ), context(asio::ssl::context::tlsv12_client),
-	socket( io_service, context ), mSessionUrl( request->requestUrl ), responseHandler( responseHandler ),
+	socket( io_service, context ), responseHandler( responseHandler ),
 	errorHandler( errorHandler ), request( request )
 	{
 		context.set_default_verify_paths();
-		auto host = mSessionUrl->host();
+		auto host = request->getUrl()->host();
 		socket.set_verify_callback(asio::ssl::rfc2818_verification{host});
 	}
 	~SslSession() = default;
 	
 	asio::io_service&		get_io_service() { return io_service; }
-	const UrlRef&			getUrl() const { return mSessionUrl; }
-	UrlRef&					getUrl() { return mSessionUrl; }
+	const UrlRef&			getUrl() const { return request->getUrl(); }
 	
 	const asio::ip::tcp::endpoint&	getEndpoint() const { return endpoint; }
 	asio::ip::tcp::endpoint&		getEndpoint() { return endpoint; }
@@ -158,18 +156,19 @@ private:
 		std::make_shared<detail::Handshaker<SslSession>>(
 			shared_from_this() )->handshake();
 	}
+	
 	void onHandshake( asio::error_code ec )
 	{
-		if( ! request )
-			request = std::make_shared<Request>( RequestMethod::GET, mSessionUrl );
 		std::make_shared<detail::Requester<SslSession>>(
-			shared_from_this(), std::move( request ) )->request();
+			shared_from_this() )->request();
 	}
+	
 	void onRequest( asio::error_code ec )
 	{
 		std::make_shared<detail::Responder<SslSession>>(
 			shared_from_this() )->read();
 	}
+	
 	void onResponse( asio::error_code ec )
 	{
 		responseHandler( ec, response );
@@ -177,7 +176,7 @@ private:
 	
 	void onError( asio::error_code ec ) 
 	{
-		errorHandler( ec, mSessionUrl, response );
+		errorHandler( ec, request->getUrl(), response );
 	}
 	
 	asio::io_service	&io_service;
@@ -188,14 +187,14 @@ private:
 	ErrorHandler		errorHandler;
 	RequestRef			request;
 	ResponseRef			response;
-	
-	UrlRef					mSessionUrl;
+
 	asio::ip::tcp::endpoint	endpoint;
 	
 	friend struct detail::Connector<SslSession>;
 	friend struct detail::Handshaker<SslSession>;
 	friend struct detail::Requester<SslSession>;
 	friend struct detail::Responder<SslSession>;
+	friend struct detail::Redirector<SslSession>;
 };
 	
 #endif

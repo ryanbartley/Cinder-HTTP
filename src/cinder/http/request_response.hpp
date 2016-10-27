@@ -82,11 +82,16 @@ struct Response {
 	ci::BufferRef& getContent() { return headerSet.getContent(); }
 	const ci::BufferRef& getContent() const { return headerSet.getContent(); }
 	
+	template<typename T>
+	T getContentAs();
+	
 	uint32_t	statusCode{0},
 				versionMajor{0},
 				versionMinor{0};
 	HeaderSet	headerSet;
 };
+	
+
 
 inline Request::Request( RequestMethod requestMethod, const UrlRef &requestUrl )
 : requestMethod( requestMethod ), requestUrl( requestUrl ),
@@ -108,9 +113,14 @@ inline void Request::process( std::ostream &request_stream ) const
 	request_stream << "Host: ";
 	request_stream << requestUrl->to_string( Url::host_component | Url::port_component );
 	request_stream << "\r\n";
+	bool acceptEncodingCached = false;
 	for( auto &header : headerSet.getHeaders() ) {
+		if( ! strcmp( header.first.c_str(), AcceptEncoding::key() ) )
+			acceptEncodingCached = true;
 		request_stream << header.first << ": " << header.second << "\r\n";
 	}
+	if( ! acceptEncodingCached )
+		request_stream << AcceptEncoding::key() << ": gzip, deflate\r\n";
 	request_stream << "\r\n";
 	auto content = headerSet.getContent();
 	if( content )
@@ -121,6 +131,60 @@ inline std::ostream& operator<<( std::ostream &stream, const Request &request )
 {
 	request.process( stream );
 	return stream;
+}
+	
+template<>
+ci::SurfaceRef Response::getContentAs<ci::SurfaceRef>()
+{
+	auto typeHeader = headerSet.findHeader( Content::Type::key() );
+	CI_ASSERT( typeHeader );
+	auto &type = typeHeader->second;
+	std::string extension;
+	
+	if( type == "image/png" ) extension = "png";
+	else if( type == "image/jpeg" ) extension = "jpeg";
+	
+	auto dataSource = ci::DataSourceBuffer::create( headerSet.getContent() );
+	return ci::Surface::create( loadImage( dataSource, ImageSource::Options(), extension ) );
+}
+	
+template<>
+ci::Surface Response::getContentAs<ci::Surface>()
+{
+	auto typeHeader = headerSet.findHeader( Content::Type::key() );
+	CI_ASSERT( typeHeader );
+	auto &type = typeHeader->second;
+	CI_ASSERT( type.find( "image/" ) != std::string::npos );
+	
+	std::string extension;
+	if( type == "image/png" ) extension = "png";
+	else if( type == "image/jpeg" ) extension = "jpeg";
+	else CI_ASSERT( false );
+	
+	auto dataSource = ci::DataSourceBuffer::create( headerSet.getContent() );
+	return ci::Surface( loadImage( dataSource, ImageSource::Options(), extension ) );
+}
+	
+template<>
+Json::Value Response::getContentAs<Json::Value>()
+{
+	auto typeHeader = headerSet.findHeader( Content::Type::key() );
+	CI_ASSERT( typeHeader );
+	auto &type = typeHeader->second;
+	CI_ASSERT( type.find( "application/json" ) != std::string::npos );
+	
+	auto &content = headerSet.getContent();
+	auto begIt = static_cast< const char* >( content->getData() );
+	auto endIt = begIt + content->getSize();
+	
+	Json::Features features;
+	features.allowComments_ = true;
+	features.strictRoot_ = true;
+	Json::Reader reader( features );
+	Json::Value value;
+	reader.parse( begIt, endIt, value, false );
+	
+	return value;
 }
 
 } // http

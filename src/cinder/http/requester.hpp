@@ -22,8 +22,8 @@ namespace http { namespace detail {
 template<typename SessionType>
 struct Requester : std::enable_shared_from_this<Requester<SessionType>> {
 public:
-	Requester( std::shared_ptr<SessionType> session, RequestRef request )
-	: mSession( session ), mRequest( std::move( request ) ) {}
+	Requester( std::shared_ptr<SessionType> session )
+	: mSession( session ), mRequest( session->request ) {}
 	
 	void request()
 	{

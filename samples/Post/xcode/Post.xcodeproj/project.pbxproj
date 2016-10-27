@@ -46,6 +46,7 @@
 		8D1107320486CEB800E47090 /* Post.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Post.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		92DE075B5B9147F897C862B4 /* url.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = url.hpp; path = ../../../src/cinder/http/url.hpp; sourceTree = "<group>"; };
 		A43E3ECC220746BEBCA383E1 /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
+		B3D5ECAD1DC0A9560072612E /* redirector.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = redirector.hpp; path = ../../../src/cinder/http/redirector.hpp; sourceTree = "<group>"; };
 		BAC7E8712B3D4E9DA552395C /* requester.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = requester.hpp; path = ../../../src/cinder/http/requester.hpp; sourceTree = "<group>"; };
 		C628773465DF4BA997AC5A5D /* headers.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = headers.hpp; path = ../../../src/cinder/http/headers.hpp; sourceTree = "<group>"; };
 		C718BFB8599244419A3A92A1 /* handshaker.hpp */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; name = handshaker.hpp; path = ../../../src/cinder/http/handshaker.hpp; sourceTree = "<group>"; };
@@ -184,6 +185,7 @@
 				C628773465DF4BA997AC5A5D /* headers.hpp */,
 				00B62E41731B4E55878BD39E /* http.hpp */,
 				34584E31B92E4DAF8427A915 /* parsers.hpp */,
+				B3D5ECAD1DC0A9560072612E /* redirector.hpp */,
 				8170F67AFD0E42B29B0F8204 /* request_response.hpp */,
 				BAC7E8712B3D4E9DA552395C /* requester.hpp */,
 				F6BE24C0BB5B4446872E49B1 /* responder.hpp */,

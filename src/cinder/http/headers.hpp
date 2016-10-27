@@ -38,6 +38,27 @@ private:
 	std::string types;
 };
 	
+struct AcceptEncoding {
+	enum class Type {
+		COMPRESS,
+		DEFLATE,
+		GZIP,
+		IDENTITY
+	};
+	AcceptEncoding( Type type ) : type( type ) {}
+	std::string value() {
+		switch( type ) {
+			case Type::COMPRESS : return "compress";
+			case Type::DEFLATE: return "deflate";
+			case Type::GZIP: return "gzip";
+			case Type::IDENTITY: return "identity";
+		}
+	}
+	static const char* key() { return "Accept-Encoding"; }
+private:
+	Type type;
+};
+	
 struct Connection {
 	enum class Type {
 		CLOSE,
@@ -62,17 +83,6 @@ private:
 };
 	
 struct Content {
-	Content( std::string content_type, std::string content )
-	: mLength( content.size() ), mType( std::move( content_type ) ),
-		mContent( Buffer::create( content.size() ) )
-	{
-		memcpy( mContent->getData(), content.data(), mContent->getSize() );
-	}
-	Content( std::string content_type, ci::BufferRef content )
-	: mLength( content->getSize() ), mType( std::move( content_type ) ),
-		mContent( content )
-	{}
-	
 	struct Length {
 		Length( size_t length ) : length( length ) {}
 		std::string value() const { return std::to_string( length ); }
@@ -89,6 +99,42 @@ struct Content {
 		std::string type;
 	};
 	
+	struct Encoding {
+		enum class Type {
+			COMPRESS,
+			DEFLATE,
+			GZIP,
+			IDENTITY
+		};
+		Encoding( Type type ) : type( type ) {}
+		std::string value() {
+			switch( type ) {
+				case Type::COMPRESS : return "compress";
+				case Type::DEFLATE: return "deflate";
+				case Type::GZIP: return "gzip";
+				case Type::IDENTITY: return "identity";
+			}
+		}
+		static const char* key() { return "Content-Encoding"; }
+	private:
+		Type type;
+	};
+	
+	Content( std::string content_type, std::string content )
+	: mLength( content.size() ), mType( std::move( content_type ) ),
+		mContent( Buffer::create( content.size() ) ), mEncoding( Encoding::Type::IDENTITY )
+	{
+		memcpy( mContent->getData(), content.data(), mContent->getSize() );
+	}
+	Content( std::string content_type, ci::BufferRef content )
+	: mLength( content->getSize() ), mType( std::move( content_type ) ),
+		mContent( content ), mEncoding( Encoding::Type::IDENTITY )
+	{}
+	Content( std::string content_type, ci::BufferRef content, Encoding::Type encodingType )
+	: mLength( content->getSize() ), mType( std::move( content_type ) ),
+		mContent( content ), mEncoding( encodingType )
+	{}
+	
 	const Length& length() const { return mLength; }
 	const Type& type() const { return mType; }
 	const ci::BufferRef& content() const { return mContent; }
@@ -96,7 +142,16 @@ struct Content {
 private:
 	Length			mLength;
 	Type			mType;
+	Encoding		mEncoding;
 	ci::BufferRef	mContent;
+};
+	
+struct Location {
+	Location( const std::string &location ) : mLocation( location ) {}
+	static const char* key() { return "Location"; }
+	std::string value() { return mLocation; }
+private:
+	std::string mLocation;
 };
 	
 struct TransferEncoding {

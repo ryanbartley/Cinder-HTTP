@@ -56,8 +56,8 @@ void Connector<SessionType>::start()
 		return;
 	}
 	
-	asio::ip::tcp::resolver::query query(mSession->mSessionUrl->host(),
-										 std::to_string( mSession->mSessionUrl->port() ) );
+	const auto &url = mSession->getUrl();
+	asio::ip::tcp::resolver::query query( url->host(), std::to_string( url->port() ) );
 	mResolver.async_resolve( query, bind( &Connector<SessionType>::on_resolve,
 										this->shared_from_this(),
 										std::placeholders::_1,
