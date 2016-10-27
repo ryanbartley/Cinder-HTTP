@@ -39,8 +39,7 @@ void TestApp::makeRequest( http::UrlRef url )
 	request->appendHeader( http::Accept() );
 	
 	auto onComplete = [&]( asio::error_code ec, http::ResponseRef response ) {
-		texture = ci::gl::Texture::create( loadImage( ci::DataSourceBuffer::create( response->getContent() ),
-													 ImageSource::Options(), ".jpg" ) );
+		texture = ci::gl::Texture::create( response->getContentAs<ci::Surface>() );
 	};
 	auto onError = []( asio::error_code ec, const http::UrlRef &url, http::ResponseRef response ){
 		CI_LOG_E( ec.message() << " val: " << ec.value() << " Url: " << url->to_string() );

@@ -8,6 +8,8 @@
 #include "url.hpp"
 #include "headers.hpp"
 #include "cinder/Base64.h"
+#include "cinder/Surface.h"
+#include "jsoncpp/json.h"
 
 namespace cinder {
 namespace http {

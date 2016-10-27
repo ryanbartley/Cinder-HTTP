@@ -58,15 +58,7 @@ void PostApp::setup()
 			app::console() << "Headers: " << std::endl;
 			app::console() << response->getHeaders() << endl;
 			app::console() << "Content: " << std::endl;
-			auto content = response->getContent();
-
-			std::string jsonStr( static_cast< const char* >( content->getData() ), content->getSize() );
-			Json::Features features;
-			features.allowComments_ = true;
-			features.strictRoot_ = true;
-			Json::Reader reader( features );
-			Json::Value value;
-			reader.parse( jsonStr, value, false );
+			auto value = response->getContentAs<Json::Value>();
 	
 			CI_LOG_I( value.toStyledString() );
 		}
