@@ -9,6 +9,8 @@
 #include "headers.hpp"
 #include "cinder/Base64.h"
 #include "cinder/Surface.h"
+#include "cinder/DataSource.h"
+#include "cinder/ImageIo.h"
 #include "jsoncpp/json.h"
 
 namespace cinder {
@@ -136,7 +138,7 @@ inline std::ostream& operator<<( std::ostream &stream, const Request &request )
 }
 	
 template<>
-ci::SurfaceRef Response::getContentAs<ci::SurfaceRef>()
+inline ci::SurfaceRef Response::getContentAs<ci::SurfaceRef>()
 {
 	auto typeHeader = headerSet.findHeader( Content::Type::key() );
 	CI_ASSERT( typeHeader );
@@ -151,7 +153,7 @@ ci::SurfaceRef Response::getContentAs<ci::SurfaceRef>()
 }
 	
 template<>
-ci::Surface Response::getContentAs<ci::Surface>()
+inline ci::Surface Response::getContentAs<ci::Surface>()
 {
 	auto typeHeader = headerSet.findHeader( Content::Type::key() );
 	CI_ASSERT( typeHeader );
@@ -168,7 +170,7 @@ ci::Surface Response::getContentAs<ci::Surface>()
 }
 	
 template<>
-Json::Value Response::getContentAs<Json::Value>()
+inline Json::Value Response::getContentAs<Json::Value>()
 {
 	auto typeHeader = headerSet.findHeader( Content::Type::key() );
 	CI_ASSERT( typeHeader );
