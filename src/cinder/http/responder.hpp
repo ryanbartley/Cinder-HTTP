@@ -41,6 +41,7 @@ private:
 	
 	void read_transferred_data( size_t bytes_transferred );
 	void finalize_buffer();
+	void extract_buffer();
 	
 	std::shared_ptr<SessionType>	mSession;
 	asio::streambuf					mReplyBuffer;
@@ -92,6 +93,12 @@ void Responder<SessionType>::finalize_buffer()
 	// Consume the response buffer
 	mReplyBuffer.consume(endIt - begIt);
 	
+	extract_buffer();
+}
+	
+template<typename SessionType>
+void Responder<SessionType>::extract_buffer()
+{
 	if( content_encoded ) {
 		auto encoded_buf = ci::Buffer( contentBuffer.data(), contentBuffer.size() );
 		auto header = mResponse->headerSet.findHeader( Content::Encoding::key() );
@@ -171,7 +178,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 				  []( const HeaderSet::Header &a, const HeaderSet::Header &b ) {
 					  return a.first < b.first;
 				  });
-		CI_LOG_D( mResponse->getHeaders() );
+		
 		content_encoded = mResponse->headerSet.findHeader( Content::Encoding::key() ) != nullptr;
 		
 		if( ! ec ) {
@@ -322,10 +329,10 @@ void Responder<SessionType>::on_finalize_chunks( asio::error_code ec, size_t byt
 		if( bytes_transferred != 2 )
 			CI_LOG_W( "In finalize and it's not 2 bytes. Instead, " << bytes_transferred );
 		mReplyBuffer.consume(bytes_transferred);
-		auto &buf = mResponse->getContent();
-		auto size = contentBuffer.size();
-		buf = ci::Buffer::create( size );
-		memcpy( buf->getData(), contentBuffer.data(), size );
+		// Call extract buffer to make sure we don't try to copy the last 2 bytes.
+		// Ugly but works. TODO: Check other options about finalizing buffers.
+		extract_buffer();
+		
 		mSession->socket.get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 		
