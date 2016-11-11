@@ -24,7 +24,36 @@ namespace cinder {
 namespace http {
 	
 namespace detail {
-	
+
+using iterator = asio::buffers_iterator<asio::streambuf::const_buffers_type>;
+
+struct ReadChunkHeaderMatchCondition {
+    std::pair<iterator, bool> operator()( iterator begin, iterator end ) {
+        for( auto i = begin; i != end; ++i ) {
+            auto charIter = reinterpret_cast<char*>( *i );
+            if( *charIter == '\r'  && *(charIter + 1) == '\n' )
+                return { i + 2, true };
+        }
+        return { begin, false };
+    }
+};
+
+struct ReadChunkMatchCondition {
+    ReadChunkMatchCondition( size_t chunkSize ) : mChunkSize( chunkSize ) {}
+    std::pair<iterator, bool> operator()( iterator begin, iterator end ) {
+        auto dist = std::distance( begin, end );
+        if( dist > mChunkSize ) {
+            auto endChunkIter = begin + mChunkSize;
+            CI_ASSERT( *(endChunkIter + 1) == '\r' && *(endChunkIter + 2) == '\n' );
+            return { endChunkIter + 3, true };
+        }
+        return { begin, false };
+    }
+
+private:
+    size_t mChunkSize;
+};
+
 template<typename SessionType>
 struct Responder : std::enable_shared_from_this<Responder<SessionType>> {
 	Responder( std::shared_ptr<SessionType> session );
@@ -35,7 +64,7 @@ private:
 	void on_read_headers( asio::error_code ec, size_t lengthRead );
 	void on_read_content( asio::error_code ec, size_t lengthRead );
 	// chunk reading
-	void on_read_chunk_header( asio::error_code ec, size_t lengthRead );
+    void on_read_chunk_header( asio::error_code ec, size_t lengthRead );
 	void on_read_chunk( asio::error_code ec, size_t lengthRead );
 	void on_finalize_chunks( asio::error_code ec, size_t lengthRead );
 	
@@ -194,7 +223,8 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 										  std::placeholders::_2 ));
 			}
 			else if( auto transferEncoding = mResponse->headerSet.findHeader( TransferEncoding::key() ) ) {
-				asio::async_read_until( mSession->socket, mReplyBuffer, "\r\n",
+                std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkHeaderMatchCondition();
+				asio::async_read_until( mSession->socket, mReplyBuffer, match,
 							  std::bind( &Responder<SessionType>::on_read_chunk_header,
 										this->shared_from_this(),
 										std::placeholders::_1,
@@ -272,10 +302,12 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		std::stringstream ss;
 		ss << std::hex << hex;
 		ss >> current_chunk_length;
+		CI_LOG_I( bytes );
 		mReplyBuffer.consume( bytes_transferred );
 		if( current_chunk_length != 0 ) {
 			// Continue reading remaining data until EOF.
-			asio::async_read_until( mSession->socket, mReplyBuffer, "\r\n",
+            std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkMatchCondition( current_chunk_length );
+			asio::async_read( mSession->socket, mReplyBuffer, match,
 							 std::bind( &Responder<SessionType>::on_read_chunk,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
@@ -301,15 +333,17 @@ void Responder<SessionType>::on_read_chunk( asio::error_code ec, size_t bytes_tr
 {
 	if ( ! ec ) {
 		// Write all of the data that has been read so far.
-		auto begIt = asio::buffers_begin( mReplyBuffer.data() );
-		if( current_chunk_length != bytes_transferred - 2 )
-			CI_LOG_W( "current_chunk_length: " << current_chunk_length << ", doesn't match bytes_transferred: " << bytes_transferred );
+		auto begIt = asio::buffers_begin(mReplyBuffer.data());
+		if (current_chunk_length != bytes_transferred - 2)
+			CI_LOG_W("current_chunk_length: " << current_chunk_length << ", doesn't match bytes_transferred: "
+											  << bytes_transferred);
 		// Copy out all data
 		contentBuffer.insert( contentBuffer.end(), begIt, begIt + current_chunk_length );
 		// Consume the response buffer
-		mReplyBuffer.consume(bytes_transferred);
+		mReplyBuffer.consume( current_chunk_length + 2 );
 		// Continue reading remaining data until EOF.
-		asio::async_read_until( mSession->socket, mReplyBuffer, "\r\n",
+        std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkHeaderMatchCondition();
+		asio::async_read_until( mSession->socket, mReplyBuffer, match,
 							   std::bind( &Responder<SessionType>::on_read_chunk_header,
 										 this->shared_from_this(),
 										 std::placeholders::_1,
