@@ -29,9 +29,10 @@ using iterator = asio::buffers_iterator<asio::streambuf::const_buffers_type>;
 
 struct ReadChunkHeaderMatchCondition {
     std::pair<iterator, bool> operator()( iterator begin, iterator end ) {
-        for( auto i = begin; i != end; ++i ) {
-            auto charIter = reinterpret_cast<char*>( *i );
-            if( *charIter == '\r'  && *(charIter + 1) == '\n' )
+        uint32_t numTimes = 0;
+        for( auto i = begin; i != end - 1; ++i ) {
+            std::cout << "numTimes: " << numTimes++ << std::endl;
+            if( *i == '\r'  && *(i + 1) == '\n' )
                 return { i + 2, true };
         }
         return { begin, false };
@@ -42,9 +43,10 @@ struct ReadChunkMatchCondition {
     ReadChunkMatchCondition( size_t chunkSize ) : mChunkSize( chunkSize ) {}
     std::pair<iterator, bool> operator()( iterator begin, iterator end ) {
         auto dist = std::distance( begin, end );
-        if( dist > mChunkSize ) {
+        if( dist > mChunkSize + 2 ) {
             auto endChunkIter = begin + mChunkSize;
-            CI_ASSERT( *(endChunkIter + 1) == '\r' && *(endChunkIter + 2) == '\n' );
+            std::cout << (int32_t) *endChunkIter << " " << (int32_t) *(endChunkIter + 1) << std::endl;
+            CI_ASSERT( *(endChunkIter) == '\r' && *(endChunkIter + 1) == '\n' );
             return { endChunkIter + 3, true };
         }
         return { begin, false };
@@ -307,7 +309,7 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		if( current_chunk_length != 0 ) {
 			// Continue reading remaining data until EOF.
             std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkMatchCondition( current_chunk_length );
-			asio::async_read( mSession->socket, mReplyBuffer, match,
+			asio::async_read_until( mSession->socket, mReplyBuffer, match,
 							 std::bind( &Responder<SessionType>::on_read_chunk,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
