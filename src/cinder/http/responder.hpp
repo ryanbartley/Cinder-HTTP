@@ -29,9 +29,7 @@ using iterator = asio::buffers_iterator<asio::streambuf::const_buffers_type>;
 
 struct ReadChunkHeaderMatchCondition {
     std::pair<iterator, bool> operator()( iterator begin, iterator end ) {
-        uint32_t numTimes = 0;
         for( auto i = begin; i != end - 1; ++i ) {
-            std::cout << "numTimes: " << numTimes++ << std::endl;
             if( *i == '\r'  && *(i + 1) == '\n' )
                 return { i + 2, true };
         }
@@ -45,7 +43,6 @@ struct ReadChunkMatchCondition {
         auto dist = std::distance( begin, end );
         if( dist > mChunkSize + 2 ) {
             auto endChunkIter = begin + mChunkSize;
-            std::cout << (int32_t) *endChunkIter << " " << (int32_t) *(endChunkIter + 1) << std::endl;
             CI_ASSERT( *(endChunkIter) == '\r' && *(endChunkIter + 1) == '\n' );
             return { endChunkIter + 3, true };
         }
@@ -304,7 +301,6 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		std::stringstream ss;
 		ss << std::hex << hex;
 		ss >> current_chunk_length;
-		CI_LOG_I( bytes );
 		mReplyBuffer.consume( bytes_transferred );
 		if( current_chunk_length != 0 ) {
 			// Continue reading remaining data until EOF.
