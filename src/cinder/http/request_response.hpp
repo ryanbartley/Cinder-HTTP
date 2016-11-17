@@ -14,7 +14,9 @@ namespace http {
 	
 enum class RequestMethod {
 	GET,
-	POST
+	POST,
+	PUT,
+	DEL
 };
 	
 using RequestRef = std::shared_ptr<struct Request>;
@@ -45,6 +47,8 @@ struct Request {
 		switch( method ) {
 			case RequestMethod::GET: return "GET"; break;
 			case RequestMethod::POST: return "POST"; break;
+			case RequestMethod::PUT: return "PUT"; break;
+			case RequestMethod::DEL: return "DELETE"; break;
 			default: return "GET"; break;
 		}
 	}
