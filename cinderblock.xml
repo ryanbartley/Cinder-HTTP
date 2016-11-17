@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <cinder>
 <block
-	name="Cinder-HTTP(S)"
+	name="Cinder-HTTP"
 	id="org.libcinder.HTTPS"
 	author="Cinder Project, Ryan Bartley"
 	license="BSD, Boost"
 	summary="Implements http and https protocols with openssl as the security."
 	core="true"
+	git="git@github.com:ryanbartley/Cinder-HTTP.git"
 	>
 	<supports os="macosx" />
 	<supports os="msw" />
