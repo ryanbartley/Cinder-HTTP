@@ -332,7 +332,7 @@ void Responder<SessionType>::on_read_chunk( asio::error_code ec, size_t bytes_tr
 	if ( ! ec ) {
 		// Write all of the data that has been read so far.
 		auto begIt = asio::buffers_begin(mReplyBuffer.data());
-		if (current_chunk_length != bytes_transferred - 2)
+		if (current_chunk_length != bytes_transferred - 3)
 			CI_LOG_W("current_chunk_length: " << current_chunk_length << ", doesn't match bytes_transferred: "
 											  << bytes_transferred);
 		// Copy out all data
