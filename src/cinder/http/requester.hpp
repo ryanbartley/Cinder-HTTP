@@ -29,7 +29,6 @@ public:
 	{
 		std::ostream request_stream( &mRequestBuffer );
 		mRequest->process( request_stream );
-		
 		asio::async_write(this->mSession->socket, mRequestBuffer,
 						  asio::transfer_all(),
 						  std::bind( &Requester<SessionType>::on_request,

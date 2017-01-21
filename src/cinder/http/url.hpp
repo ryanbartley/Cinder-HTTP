@@ -322,6 +322,8 @@ public:
 
   /// Compares two @c url objects for ordering.
   friend inline bool operator<(const Url& a, const Url& b);
+	
+  inline static std::string escape_path(const std::string& in);
 
 private:
   inline static bool unescape_path(const std::string& in, std::string& out);
