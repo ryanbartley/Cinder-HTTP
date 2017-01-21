@@ -12,6 +12,7 @@
 #include "cinder/DataSource.h"
 #include "cinder/ImageIo.h"
 #include "jsoncpp/json.h"
+#include "cinder/Url.h"
 
 namespace cinder {
 namespace http {
@@ -112,7 +113,8 @@ inline void Request::appendHeader( T header )
 inline void Request::process( std::ostream &request_stream ) const
 {
 	request_stream << getRequestMethod( requestMethod ) << " ";
-	request_stream << requestUrl->to_string( Url::path_component | Url::query_component );
+	request_stream << ci::Url::encode( requestUrl->to_string( Url::path_component ) );
+	request_stream << requestUrl->to_string( Url::query_component );
 	request_stream << " HTTP/" << versionMajor << "." << versionMinor << "\r\n";
 	request_stream << "Host: ";
 	request_stream << requestUrl->to_string( Url::host_component | Url::port_component );
@@ -174,8 +176,7 @@ inline Json::Value Response::getContentAs<Json::Value>()
 {
 	auto typeHeader = headerSet.findHeader( Content::Type::key() );
 	CI_ASSERT( typeHeader );
-	auto &type = typeHeader->second;
-	CI_ASSERT( type.find( "application/json" ) != std::string::npos );
+	CI_ASSERT( typeHeader->second.find( "application/json" ) != std::string::npos );
 	
 	auto &content = headerSet.getContent();
 	auto begIt = static_cast< const char* >( content->getData() );

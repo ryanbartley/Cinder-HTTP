@@ -15,6 +15,9 @@
 #include <cctype>
 #include <cstdlib>
 #include <system_error>
+#include <iomanip>
+#include <sstream>
+#include <string>
 
 namespace cinder {
 namespace http {
@@ -330,6 +333,13 @@ bool Url::unescape_path(const std::string& in, std::string& out)
     }
   }
   return true;
+}
+	
+std::string Url::escape_path(const std::string &in)
+{
+	// Needs implementation.
+	
+	return in;
 }
 
 bool operator==(const Url& a, const Url& b)
