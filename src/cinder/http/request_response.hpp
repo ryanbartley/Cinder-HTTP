@@ -4,6 +4,10 @@
 #include <string>
 #include <algorithm>
 #include <memory>
+#include <cctype>
+#include <iomanip>
+#include <sstream>
+#include <string>
 
 #include "url.hpp"
 #include "headers.hpp"
@@ -52,6 +56,8 @@ struct Request {
 			default: return "GET"; break;
 		}
 	}
+	
+	std::string encode( const std::string &value ) const;
 	
 	HeaderSet& getHeaders() { return headerSet; }
 	const HeaderSet& getHeaders() const { return headerSet; }
@@ -108,11 +114,46 @@ inline void Request::appendHeader( T header )
 {
 	headerSet.appendHeader( std::move( header ) );
 }
+	
+// Found parts of this implementation from this stackoverflow post.
+// http://stackoverflow.com/questions/154536/encode-decode-urls-in-c
+// still needs work. not exactly what i want.
+inline std::string Request::encode( const std::string &value ) const
+{
+	std::ostringstream escaped;
+	escaped.fill('0');
+	escaped << std::hex;
+	
+	for ( auto c : value ) {
+		switch( c ) {
+			case '-': case '_': case '.': case '!': case '~': case '*':
+			case '\'': case '(': case ')': case ':': case '@': case '&':
+			case '=': case '+': case '$': case ',': case '/': case ';':
+				escaped << c;
+			break;
+			default: {
+				if( std::isalnum(c) ) {
+					escaped << c;
+				}
+				else {
+					// Any other characters are percent-encoded
+					escaped << std::uppercase;
+					escaped << '%' << std::setw(2) << int((unsigned char) c);
+					escaped << std::nouppercase;
+				}
+			}
+			break;
+		}
+	}
+	
+	return escaped.str();
+}
 
 inline void Request::process( std::ostream &request_stream ) const
 {
 	request_stream << getRequestMethod( requestMethod ) << " ";
-	request_stream << requestUrl->to_string( Url::path_component | Url::query_component );
+	request_stream << encode( requestUrl->to_string( Url::path_component ) );
+	request_stream << requestUrl->to_string( Url::query_component );
 	request_stream << " HTTP/" << versionMajor << "." << versionMinor << "\r\n";
 	request_stream << "Host: ";
 	request_stream << requestUrl->to_string( Url::host_component | Url::port_component );
@@ -130,6 +171,8 @@ inline void Request::process( std::ostream &request_stream ) const
 	if( content )
 		request_stream.write( static_cast< const char* >( content->getData() ), content->getSize() );
 }
+	
+	
 	
 inline std::ostream& operator<<( std::ostream &stream, const Request &request )
 {
