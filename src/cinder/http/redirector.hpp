@@ -50,8 +50,7 @@ void Redirector<SessionType>::redirect()
 	}
 		
 	CI_ASSERT( locationHeader );
-	auto redirectStatus = mSession->response->statusCode;
-	CI_ASSERT( redirectStatus >= 300 && redirectStatus < 400 );
+	CI_ASSERT( mSession->response->statusCode >= 300 && mSession->response->statusCode < 400 );
 	auto &location = locationHeader->second;
 	
 	if( location[0] == '/' ) {

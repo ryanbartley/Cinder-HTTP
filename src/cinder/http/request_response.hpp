@@ -16,6 +16,7 @@
 #include "cinder/DataSource.h"
 #include "cinder/ImageIo.h"
 #include "jsoncpp/json.h"
+#include "cinder/Url.h"
 
 namespace cinder {
 namespace http {
@@ -217,8 +218,7 @@ inline Json::Value Response::getContentAs<Json::Value>()
 {
 	auto typeHeader = headerSet.findHeader( Content::Type::key() );
 	CI_ASSERT( typeHeader );
-	auto &type = typeHeader->second;
-	CI_ASSERT( type.find( "application/json" ) != std::string::npos );
+	CI_ASSERT( typeHeader->second.find( "application/json" ) != std::string::npos );
 	
 	auto &content = headerSet.getContent();
 	auto begIt = static_cast< const char* >( content->getData() );
