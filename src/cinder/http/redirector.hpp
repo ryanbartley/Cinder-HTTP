@@ -43,6 +43,12 @@ void Redirector<SessionType>::redirect()
 {
 	std::cout << mSession->response->getHeaders() << std::endl;
 	auto locationHeader = mSession->response->getHeaders().findHeader( Location::key() );
+	// Todo this is a hack that needs to be resolved in the headers class where some servers
+	// don't send the correctly formatted header title.
+	if( ! locationHeader ) {
+		locationHeader = mSession->response->getHeaders().findHeader( "location" );
+	}
+		
 	CI_ASSERT( locationHeader );
 	CI_ASSERT( mSession->response->statusCode >= 300 && mSession->response->statusCode < 400 );
 	auto &location = locationHeader->second;
