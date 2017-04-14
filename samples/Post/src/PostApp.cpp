@@ -41,7 +41,6 @@ class PostApp : public App {
 	void draw() override;
 
 	std::shared_ptr<ci::http::Session>		session;
-	std::shared_ptr<ci::http::SslSession>	sslSession;
 };
 
 void PostApp::setup()
@@ -71,14 +70,9 @@ void PostApp::setup()
 		}
 	};
 
-	if( url->port() == 80 ) {
-		session = std::make_shared<http::Session>( request, onComplete, onError );
-		session->start();
-	}
-	else if( url->port() == 443 ) {
-		sslSession = std::make_shared<http::SslSession>( request, onComplete, onError );
-		sslSession->start();
-	}
+	session = std::make_shared<http::Session>( request, onComplete, onError );
+	session->start();
+	
 }
 
 void PostApp::mouseDown( MouseEvent event )
