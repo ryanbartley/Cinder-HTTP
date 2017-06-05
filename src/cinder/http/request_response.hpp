@@ -31,23 +31,24 @@ using RequestRef = std::shared_ptr<struct Request>;
 struct Request {
 	//! Constructs the request with /a requestMethod and /a url. Also, sets two 
 	//! headers, "Accepts: */*" and "Connection: close"
-	Request( RequestMethod requestMethod, const UrlRef &requestUrl );
+	Request( RequestMethod requestMethod, const UrlRef &requestUrl )
+	: mRequestMethod( requestMethod ), mRequestUrl( requestUrl ) {}
 	Request();
 
 	//! Returns a pair of uint32_t representing the major, minor version number of HTTP
-	std::pair<uint32_t, uint32_t> getVersion() const { return{ versionMajor, versionMinor }; }
+	std::pair<uint32_t, uint32_t> getVersion() const { return{ mVersionMajor, mVersionMinor }; }
 	//! Sets the underlying /a major, /a minor HTTP version of this request
-	void setVersion( uint32_t major, uint32_t minor ) { versionMajor = major; versionMinor = minor; }
+	void setVersion( uint32_t major, uint32_t minor ) { mVersionMajor = major; mVersionMinor = minor; }
 
 	//! Returns a const ref to the url attached to this request
-	const UrlRef& getUrl() const { return requestUrl; }
+	const UrlRef& getUrl() const { return mRequestUrl; }
 	//! Sets the url of this request
-	void setUrl( UrlRef request_url ) { requestUrl = request_url; }
+	void setUrl( UrlRef request_url ) { mRequestUrl = request_url; }
 
 	//! Returns the RequestMethod of this request
-	RequestMethod getRequestMethod() { return requestMethod; }
+	RequestMethod getRequestMethod() { return mRequestMethod; }
 	//! Sets the RequestMethod of this request
-	void setRequestMethod( RequestMethod method ) { requestMethod = method; }
+	void setRequestMethod( RequestMethod method ) { mRequestMethod = method; }
 	//! Returns a const char* translation of the RequestMethod
 	const char* getRequestMethod( RequestMethod method ) const
 	{
@@ -58,22 +59,30 @@ struct Request {
 		}
 	}
 	
-	std::string encode( const std::string &value ) const;
-	
-	HeaderSet& getHeaders() { return headerSet; }
-	const HeaderSet& getHeaders() const { return headerSet; }
+	HeaderSet& getHeaders() { return mHeaderSet; }
+	const HeaderSet& getHeaders() const { return mHeaderSet; }
 	
 	template<typename T>
 	void appendHeader( T header );
+	
+	void maxRedirects( int32_t max ) { mMaxRedirects = max; }
+	
+	template<typename DurationType>
+	void timeout( DurationType duration )
+	{
+		mTimeout = std::chrono::duration_cast<std::chrono::nanoseconds>( duration );
+	}
 
 	//! Processes the request for output
 	void process( std::ostream &request_buffer ) const;
 
-	RequestMethod	requestMethod;
-	UrlRef			requestUrl;
-	uint32_t		versionMajor,
-					versionMinor;
-	HeaderSet 		headerSet;
+	RequestMethod	mRequestMethod;
+	UrlRef			mRequestUrl;
+	uint32_t		mVersionMajor{1},
+					mVersionMinor{1};
+	int32_t			mMaxRedirects{-1};
+	HeaderSet 		mHeaderSet;
+	std::chrono::nanoseconds mTimeout{0};
 };
 
 using ResponseRef = std::shared_ptr<struct Response>;
@@ -102,65 +111,22 @@ struct Response {
 	HeaderSet	headerSet;
 };
 	
-
-
-inline Request::Request( RequestMethod requestMethod, const UrlRef &requestUrl )
-: requestMethod( requestMethod ), requestUrl( requestUrl ),
-	versionMajor( 1 ), versionMinor( 1 )
-{
-}
-	
 template<typename T>
 inline void Request::appendHeader( T header )
 {
-	headerSet.appendHeader( std::move( header ) );
-}
-	
-// Found parts of this implementation from this stackoverflow post.
-// http://stackoverflow.com/questions/154536/encode-decode-urls-in-c
-// still needs work. not exactly what i want.
-inline std::string Request::encode( const std::string &value ) const
-{
-	std::ostringstream escaped;
-	escaped.fill('0');
-	escaped << std::hex;
-	
-	for ( auto c : value ) {
-		switch( c ) {
-			case '-': case '_': case '.': case '!': case '~': case '*':
-			case '\'': case '(': case ')': case ':': case '@': case '&':
-			case '=': case '+': case '$': case ',': case '/': case ';':
-				escaped << c;
-			break;
-			default: {
-				if( std::isalnum(c) ) {
-					escaped << c;
-				}
-				else {
-					// Any other characters are percent-encoded
-					escaped << std::uppercase;
-					escaped << '%' << std::setw(2) << int((unsigned char) c);
-					escaped << std::nouppercase;
-				}
-			}
-			break;
-		}
-	}
-	
-	return escaped.str();
+	mHeaderSet.appendHeader( std::move( header ) );
 }
 
 inline void Request::process( std::ostream &request_stream ) const
 {
-	request_stream << getRequestMethod( requestMethod ) << " ";
-	request_stream << encode( requestUrl->to_string( Url::path_component ) );
-	request_stream << requestUrl->to_string( Url::query_component );
-	request_stream << " HTTP/" << versionMajor << "." << versionMinor << "\r\n";
+	request_stream << getRequestMethod( mRequestMethod ) << " ";
+	request_stream << mRequestUrl->to_escaped_string( Url::path_component | Url::query_component );
+	request_stream << " HTTP/" << mVersionMajor << "." << mVersionMinor << "\r\n";
 	request_stream << "Host: ";
-	request_stream << requestUrl->to_string( Url::host_component | Url::port_component );
+	request_stream << mRequestUrl->to_escaped_string( Url::host_component | Url::port_component );
 	request_stream << "\r\n";
 	bool acceptEncodingCached = false;
-	for( auto &header : headerSet.getHeaders() ) {
+	for( const auto &header : mHeaderSet.getHeaders() ) {
 		if( ! strcmp( header.first.c_str(), AcceptEncoding::key() ) )
 			acceptEncodingCached = true;
 		request_stream << header.first << ": " << header.second << "\r\n";
@@ -168,12 +134,10 @@ inline void Request::process( std::ostream &request_stream ) const
 	if( ! acceptEncodingCached )
 		request_stream << AcceptEncoding::key() << ": gzip, deflate\r\n";
 	request_stream << "\r\n";
-	auto content = headerSet.getContent();
+	const auto &content = mHeaderSet.getContent();
 	if( content )
 		request_stream.write( static_cast< const char* >( content->getData() ), content->getSize() );
 }
-	
-	
 	
 inline std::ostream& operator<<( std::ostream &stream, const Request &request )
 {

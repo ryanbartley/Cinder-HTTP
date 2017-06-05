@@ -25,28 +25,38 @@ namespace detail {
 template <typename SessionType>
 class Redirector : public std::enable_shared_from_this<Redirector<SessionType>> {
 public:
-	Redirector( std::shared_ptr<SessionType> session );
+	Redirector( std::shared_ptr<SessionType> session, asio::error_code originatingError );
 	
 	void redirect();
 private:
-	std::shared_ptr<SessionType> mSession;
+	std::shared_ptr<SessionType>	mSession;
+	asio::error_code				mOriginatingError;
 };
 
 template<typename SessionType>
-Redirector<SessionType>::Redirector( std::shared_ptr<SessionType> session )
-: mSession( session )
+Redirector<SessionType>::Redirector( std::shared_ptr<SessionType> session, asio::error_code originatingError )
+: mSession( session ), mOriginatingError( originatingError )
 {
 }
 
 template<typename SessionType>
 void Redirector<SessionType>::redirect()
 {
-	std::cout << mSession->response->getHeaders() << std::endl;
-	auto locationHeader = mSession->response->getHeaders().findHeader( Location::key() );
-	// Todo this is a hack that needs to be resolved in the headers class where some servers
+	auto &request = *mSession->request;
+	if( request.mMaxRedirects != -1 ) {
+		if( mSession->attempted_redirects < request.mMaxRedirects ) {
+			mSession->attempted_redirects++;
+			mSession->socket().get_io_service().post(
+				std::bind( &SessionType::onError, mSession, mOriginatingError ) );
+			return;
+		}
+	}
+	auto &response = *mSession->response;
+	auto locationHeader = response.getHeaders().findHeader( Location::key() );
+	// Todo: this is a hack that needs to be resolved in the headers class where some servers
 	// don't send the correctly formatted header title.
 	if( ! locationHeader ) {
-		locationHeader = mSession->response->getHeaders().findHeader( "location" );
+		locationHeader = response.getHeaders().findHeader( "location" );
 	}
 		
 	CI_ASSERT( locationHeader );
@@ -56,12 +66,18 @@ void Redirector<SessionType>::redirect()
 	if( location[0] == '/' ) {
 		mSession->request->getUrl()->set_path( location );
 		auto endpoint = mSession->endpoint;
-		mSession = std::make_shared<SessionType>( mSession->request, mSession->responseHandler, mSession->errorHandler, mSession->get_io_service() );
+		mSession = std::make_shared<SessionType>( mSession->request,
+												  mSession->responseHandler,
+												  mSession->errorHandler,
+												  mSession->get_io_service() );
 		mSession->start( endpoint );
 	}
 	else if( location[0] == 'h' ) {
 		mSession->request->setUrl( std::make_shared<Url>( location ) );
-		mSession = std::make_shared<SessionType>( mSession->request, mSession->responseHandler, mSession->errorHandler, mSession->get_io_service() );
+		mSession = std::make_shared<SessionType>( mSession->request,
+												  mSession->responseHandler,
+												  mSession->errorHandler,
+												  mSession->get_io_service() );
 		mSession->start();
 	}
 }

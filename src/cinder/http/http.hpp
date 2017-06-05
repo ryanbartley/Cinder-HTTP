@@ -12,8 +12,6 @@
 #define ASIO_STANDALONE 1
 #endif
 
-//#define USING_SSL
-
 #include "asio/asio.hpp"
 #if defined( USING_SSL )
 #include "asio/ssl.hpp"
@@ -31,6 +29,9 @@
 
 namespace cinder {
 namespace http {
+	
+using Timer = asio::basic_waitable_timer<std::chrono::high_resolution_clock>;
+using TimerRef = std::shared_ptr<Timer>;
 
 enum class protocol {
 	http,
@@ -41,16 +42,53 @@ enum class protocol {
 using ResponseHandler = std::function<void( asio::error_code, ResponseRef )>;
 using ErrorHandler = std::function<void( asio::error_code, const UrlRef &, ResponseRef )>;
 	
-using SessionRef = std::shared_ptr<class Session>;
+namespace detail {
+	
+struct Session {
+public:
+	Session( asio::io_service &service, const UrlRef &url )
+	: socket_impl( service )
+	{}
+	
+protected:
+	asio::ip::tcp::socket& socket() { return socket_impl; }
+	void cancel() { socket_impl.cancel(); };
+	
+	asio::ip::tcp::socket	socket_impl;
+};
 
-class Session : public std::enable_shared_from_this<Session> {
+struct SslSession {
+public:
+	SslSession( asio::io_service &service, const UrlRef &url )
+	: context(asio::ssl::context::tlsv12_client),
+		socket_impl( service, context )
+	{
+		context.set_default_verify_paths();
+		auto &&host = url->host();
+		auto &&verification = asio::ssl::rfc2818_verification{std::move(host)};
+		socket_impl.set_verify_callback(verification);
+	}
+	
+protected:
+	asio::ip::tcp::socket& socket() { return socket_impl.next_layer(); }
+	void cancel() { socket_impl.next_layer().cancel(); }
+	
+	asio::ssl::context						context;
+	asio::ssl::stream<asio::ip::tcp::socket> socket_impl;
+};
+
+template<typename socket_impl>
+class ClientImpl : public socket_impl,
+	public std::enable_shared_from_this<ClientImpl<socket_impl>> {
 public:
 	
-	Session( RequestRef request, ResponseHandler responseHandler, ErrorHandler errorHandler,
-			 asio::io_service &io_service = ci::app::App::get()->io_service() )
-	: io_service( io_service ), socket( io_service ), responseHandler( responseHandler ),
-	errorHandler( errorHandler ), request( request ) {}
-	~Session() = default;
+	ClientImpl( RequestRef request, ResponseHandler responseHandler, ErrorHandler errorHandler,
+			    asio::io_service &io_service = ci::app::App::get()->io_service() )
+	: socket_impl( io_service, request->getUrl() ), io_service( io_service ), timeout_reached( false ),
+		responseHandler( responseHandler ), errorHandler( errorHandler ), request( request )
+	{
+	}
+	~ClientImpl() = default;
 	
 	asio::io_service&	get_io_service() { return io_service; }
 	const UrlRef&		getUrl() const { return request->getUrl(); }
@@ -60,143 +98,111 @@ public:
 	
 	void start()
 	{
-		std::make_shared<detail::Connector<Session>>( 
-				shared_from_this(), socket )->start();
+		if( request->mTimeout != std::chrono::nanoseconds(0) )
+			createTimeout( request->mTimeout );
+		std::make_shared<detail::Connector<ClientImpl>>(
+				this->shared_from_this(), socket_impl::socket() )->start();
 	}
 	
 	void start( asio::ip::tcp::endpoint endpoint )
 	{
-		std::make_shared<detail::Connector<Session>>(
-			shared_from_this(), socket )->start( endpoint );
+		if( request->mTimeout != std::chrono::nanoseconds(0) )
+			createTimeout( request->mTimeout );
+		std::make_shared<detail::Connector<ClientImpl>>(
+				this->shared_from_this(), socket_impl::socket() )->start( endpoint );
 	}
 	
-private:
+protected:
+	ClientImpl( const ClientImpl &other )
+	{
+		
+	}
+	ClientImpl( ClientImpl &&other )
+	{
+		
+	}
+	ClientImpl& operator=( const ClientImpl &other ) = delete;
+	ClientImpl operator=( ClientImpl &&other ) = delete;
+		
 	void onOpen( asio::error_code ec )
 	{
-		std::make_shared<detail::Handshaker<Session>>(
-			shared_from_this() )->handshake();
+		std::make_shared<detail::Handshaker<ClientImpl>>(
+				this->shared_from_this() )->handshake();
 	}
 	void onHandshake( asio::error_code ec )
 	{
-		std::make_shared<detail::Requester<Session>>(
-			shared_from_this() )->request();
+		std::make_shared<detail::Requester<ClientImpl>>(
+				this->shared_from_this() )->request();
 	}
 	void onRequest( asio::error_code ec )
 	{
-		std::make_shared<detail::Responder<Session>>(
-			shared_from_this() )->read();
+		std::make_shared<detail::Responder<ClientImpl>>(
+				this->shared_from_this() )->read();
 	}
 	void onResponse( asio::error_code ec )
 	{
+		if( timeout_clock )
+			timeout_clock->cancel();
 		responseHandler( ec, response );
 	}
-	
-	void onError( asio::error_code ec ) 
+		
+	void createTimeout( std::chrono::nanoseconds timeout_duration )
 	{
+		timeout_clock = std::make_shared<Timer>( io_service );
+		auto &&self = this->shared_from_this();
+		timeout_clock->expires_from_now( timeout_duration );
+		timeout_clock->async_wait( [self]( asio::error_code ec ){ self->onDeadline( ec ); });
+	}
+	
+	void onError( asio::error_code ec )
+	{
+		if( ec == asio::error::operation_aborted && timeout_reached )
+			return;
+		
+		if( timeout_clock )
+			timeout_clock->cancel();
+		errorHandler( ec, request->getUrl(), response );
+	}
+	
+	void onDeadline( asio::error_code ec )
+	{
+		timeout_clock.reset();
+		if( ec == asio::error::operation_aborted )
+			return;
+		
+		timeout_reached.store( true );
+		socket_impl::cancel();
+		ec = asio::error::timed_out;
+		
 		errorHandler( ec, request->getUrl(), response );
 	}
 	
 	asio::io_service		&io_service;
-	asio::ip::tcp::socket	socket;
+	
+	TimerRef				timeout_clock;
+	std::atomic_bool		timeout_reached;
+	uint32_t				attempted_redirects{0};
 	
 	ResponseHandler		responseHandler;
 	ErrorHandler		errorHandler;
 	RequestRef			request;
 	ResponseRef			response;
+		
 	
 	asio::ip::tcp::endpoint	endpoint;
 	
-	friend struct detail::Connector<Session>;
-	friend struct detail::Handshaker<Session>;
-	friend struct detail::Requester<Session>;
-	friend struct detail::Responder<Session>;
-	friend struct detail::Redirector<Session>;
+	friend struct detail::Connector<ClientImpl>;
+	friend struct detail::Handshaker<ClientImpl>;
+	friend struct detail::Requester<ClientImpl>;
+	friend struct detail::Responder<ClientImpl>;
+	friend struct detail::Redirector<ClientImpl>;
 };
-	
-#if defined( USING_SSL )
-	
-using SslSessionRef = std::shared_ptr<class SslSession>;
 
-class SslSession : public std::enable_shared_from_this<SslSession> {
-public:
+}
 	
-	SslSession( RequestRef request, ResponseHandler responseHandler, ErrorHandler errorHandler,
-			    asio::io_service &io_service = ci::app::App::get()->io_service() )
-	: io_service( io_service ), context(asio::ssl::context::tlsv12_client),
-	socket( io_service, context ), responseHandler( responseHandler ),
-	errorHandler( errorHandler ), request( request )
-	{
-		context.set_default_verify_paths();
-		auto host = request->getUrl()->host();
-		socket.set_verify_callback(asio::ssl::rfc2818_verification{host});
-	}
-	~SslSession() = default;
-	
-	asio::io_service&		get_io_service() { return io_service; }
-	const UrlRef&			getUrl() const { return request->getUrl(); }
-	
-	const asio::ip::tcp::endpoint&	getEndpoint() const { return endpoint; }
-	asio::ip::tcp::endpoint&		getEndpoint() { return endpoint; }
-	
-	void start()
-	{
-		std::make_shared<detail::Connector<SslSession>>(
-			shared_from_this(), socket.next_layer() )->start();
-	}
-	
-	void start( asio::ip::tcp::endpoint endpoint )
-	{
-		std::make_shared<detail::Connector<SslSession>>(
-			shared_from_this(), socket.next_layer() )->start( endpoint );
-	}
-	
-private:
-	void onOpen( asio::error_code ec )
-	{
-		std::make_shared<detail::Handshaker<SslSession>>(
-			shared_from_this() )->handshake();
-	}
-	
-	void onHandshake( asio::error_code ec )
-	{
-		std::make_shared<detail::Requester<SslSession>>(
-			shared_from_this() )->request();
-	}
-	
-	void onRequest( asio::error_code ec )
-	{
-		std::make_shared<detail::Responder<SslSession>>(
-			shared_from_this() )->read();
-	}
-	
-	void onResponse( asio::error_code ec )
-	{
-		responseHandler( ec, response );
-	}
-	
-	void onError( asio::error_code ec ) 
-	{
-		errorHandler( ec, request->getUrl(), response );
-	}
-	
-	asio::io_service	&io_service;
-	asio::ssl::context	context;
-	asio::ssl::stream<asio::ip::tcp::socket> socket;
-	
-	ResponseHandler		responseHandler;
-	ErrorHandler		errorHandler;
-	RequestRef			request;
-	ResponseRef			response;
-
-	asio::ip::tcp::endpoint	endpoint;
-	
-	friend struct detail::Connector<SslSession>;
-	friend struct detail::Handshaker<SslSession>;
-	friend struct detail::Requester<SslSession>;
-	friend struct detail::Responder<SslSession>;
-	friend struct detail::Redirector<SslSession>;
-};
-	
-#endif
+using Session = detail::ClientImpl<detail::Session>;
+using SessionRef = std::shared_ptr<Session>;
+using SslSession = detail::ClientImpl<detail::SslSession>;
+using SslSessionRef = std::shared_ptr<SslSession>;
 	
 }} // http // cinder

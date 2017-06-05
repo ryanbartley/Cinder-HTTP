@@ -36,13 +36,13 @@ struct Handshaker : std::enable_shared_from_this<Handshaker<SessionType>> {
 						 std::bind( &Handshaker<SessionType>::on_handshake,
 									this->shared_from_this(), 
 									std::placeholders::_1 ),
-						 mSession->socket );
+						 mSession->socket() );
 	}
 	
 private:
 	void on_handshake( asio::error_code ec )
 	{
-		auto &io = mSession->socket.get_io_service();
+		auto &io = mSession->socket().get_io_service();
 		if( !ec )
 			io.post( std::bind( &SessionType::onHandshake, mSession, ec ) );
 		else
