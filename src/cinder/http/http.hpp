@@ -57,6 +57,7 @@ protected:
 	asio::ip::tcp::socket	socket_impl;
 };
 
+#if defined(USING_SSL)
 struct SslSession {
 public:
 	SslSession( asio::io_service &service, const UrlRef &url )
@@ -76,6 +77,7 @@ protected:
 	asio::ssl::context						context;
 	asio::ssl::stream<asio::ip::tcp::socket> socket_impl;
 };
+#endif
 
 template<typename socket_impl>
 class ClientImpl : public socket_impl,
@@ -202,7 +204,9 @@ protected:
 	
 using Session = detail::ClientImpl<detail::Session>;
 using SessionRef = std::shared_ptr<Session>;
+#if defined(USING_SSL)
 using SslSession = detail::ClientImpl<detail::SslSession>;
 using SslSessionRef = std::shared_ptr<SslSession>;
-	
+#endif
+
 }} // http // cinder

@@ -203,7 +203,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 		
 		auto &headerSet = mResponse->headerSet.getHeaders();
 		std::sort( begin( headerSet ), end( headerSet ),
-				  []( const HeaderSet::Header &a, const HeaderSet::Header &b ) {
+				  []( const Header &a, const Header &b ) {
 					  return a.first < b.first;
 				  });
 		

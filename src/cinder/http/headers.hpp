@@ -323,39 +323,6 @@ private:
 };
 	
 struct HeaderSet {
-	using Header = std::pair<std::string, std::string>;
-	using Headers = std::vector<Header>;
-	HeaderSet() = default;
-	
-	//! Returns a const ref to the headers attached to this request
-	const Headers& getHeaders() const { return headers; }
-	Headers& getHeaders() { return headers; }
-	//! Adds /a header to the set of headers with /a headerValue, doesn't replace
-	void appendHeader( const std::string &header, const std::string &headerValue );
-	//! Changes the value of /a header to /a headerValue
-	void changeHeader( std::string header, std::string headerValue );
-	
-	template<typename T>
-	void appendHeader( T header );
-	
-	const Header* findHeader( const std::string &headerKey ) const;
-	const Header* findHeader( const char *headerKey ) const;
-	
-	//! Returns a const ref to the content attached to this request
-	const ci::BufferRef& getContent() const { return content; }
-	ci::BufferRef& getContent() { return content; }
-	//! Sets content for this request, creating a header for Content-Type and Content-Length
-	//! as well as setting the content
-	
-private:
-	
-	Headers			headers;
-	ci::BufferRef	content;
-	
-	friend std::ostream& operator<<( std::ostream &stream, const HeaderSet &headers );
-};
-
-struct HeaderSet {
 	using Headers = std::vector<Header>;
 	HeaderSet() = default;
 	
@@ -473,7 +440,7 @@ inline void HeaderSet::appendHeader( T header )
 		headers.emplace_back( T::key(), header.value() );
 }
 	
-inline const HeaderSet::Header* HeaderSet::findHeader( const std::string &header ) const
+inline const Header* HeaderSet::findHeader( const std::string &header ) const
 {
 	return findHeader( header.c_str() );
 }
@@ -497,7 +464,7 @@ inline void HeaderSet::appendHeader( const std::string &header, const std::strin
 		headers.emplace_back( header, headerValue );
 }
 	
-inline const HeaderSet::Header* HeaderSet::findHeader( const char *header ) const
+inline const Header* HeaderSet::findHeader( const char *header ) const
 {
 	auto endIt = end( headers );
 	auto foundIt = std::lower_bound( begin( headers ), endIt, header,

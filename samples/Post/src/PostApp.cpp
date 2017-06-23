@@ -4,9 +4,7 @@
 
 #include "jsoncpp/json.h"
 
-#define USING_SSL = 1 // Comment out to use without SSL
 #include "cinder/http/http.hpp"
-
 
 using namespace ci;
 using namespace ci::app;
@@ -36,55 +34,62 @@ static const std::string cinder_text = "BRIEF TEXT ABOUT CINDER\n"
 "http://libcinder.org";
 
 class PostApp : public App {
-public:
+  public:
 	void setup() override;
-	void mouseDown(MouseEvent event) override;
+	void mouseDown( MouseEvent event ) override;
 	void update() override;
 	void draw() override;
 
 	std::shared_ptr<ci::http::Session>		session;
-	std::shared_ptr<ci::http::SslSession>	sslSession; // Comment out if not using SSL
+#if defined(USING_SSL)
+	std::shared_ptr<ci::http::SslSession>	sslSession;
+#endif
 };
 
 void PostApp::setup()
 {
-	auto url = make_shared<http::Url>("http://httpbin.org/post");
-	auto request = std::make_shared<http::Request>(http::RequestMethod::POST, url);
-	request->appendHeader(http::Connection(http::Connection::Type::CLOSE));
-	request->appendHeader(http::Accept());
+	auto url = make_shared<http::Url>( "http://httpbin.org/post" );
+	auto request = std::make_shared<http::Request>( http::RequestMethod::POST, url );
+	request->appendHeader( http::Connection( http::Connection::Type::CLOSE ) );
+	request->appendHeader( http::Accept() );
 
-	request->appendHeader(http::Content(std::string("text/plain; charset=utf-8"), cinder_text));
+	request->appendHeader( http::Content( std::string( "text/plain; charset=utf-8" ), cinder_text ) );
 
-	auto onComplete = [&](asio::error_code ec, http::ResponseRef response) {
-		if (response) {
+	auto onComplete = [&]( asio::error_code ec, http::ResponseRef response ) {
+		if( response ) {
 			app::console() << "Headers: " << std::endl;
 			app::console() << response->getHeaders() << endl;
 			app::console() << "Content: " << std::endl;
 			auto value = response->getContentAs<Json::Value>();
-
-			CI_LOG_I(value.toStyledString());
+	
+			CI_LOG_I( value.toStyledString() );
 		}
 	};
-	auto onError = [](asio::error_code ec, const http::UrlRef &url, http::ResponseRef response) {
-		CI_LOG_E(ec.message() << " val: " << ec.value() << " Url: " << url->to_string());
-		if (response) {
+	auto onError = []( asio::error_code ec, const http::UrlRef &url, http::ResponseRef response ) {
+		CI_LOG_E( ec.message() << " val: " << ec.value() << " Url: " << url->to_string() );
+		if( response ) {
 			app::console() << "Headers: " << std::endl;
 			app::console() << response->getHeaders() << endl;
 		}
 	};
 
-	if (url->port() == 80) {
-		session = std::make_shared<http::Session>(request, onComplete, onError);
+	if( url->port() == 80 ) {
+		session = std::make_shared<http::Session>( request, onComplete, onError );
 		session->start();
 	}
-	// Comment out if not using SSL
-	else if (url->port() == 443) {
-		sslSession = std::make_shared<http::SslSession>(request, onComplete, onError);
+#if defined(USING_SSL)
+	else if( url->port() == 443 ) {
+		sslSession = std::make_shared<http::SslSession>( request, onComplete, onError );
 		sslSession->start();
 	}
+#else 
+	else {
+		CI_LOG_E("Not using Ssl.");
+	}
+#endif
 }
 
-void PostApp::mouseDown(MouseEvent event)
+void PostApp::mouseDown( MouseEvent event )
 {
 }
 
@@ -94,7 +99,7 @@ void PostApp::update()
 
 void PostApp::draw()
 {
-	gl::clear(Color(0, 0, 0));
+	gl::clear( Color( 0, 0, 0 ) ); 
 }
 
-CINDER_APP(PostApp, RendererGl)
+CINDER_APP( PostApp, RendererGl )
