@@ -21,11 +21,34 @@
 namespace cinder {
 namespace http {
 	
+//! Enums representing HTTP request methods. Info from:
+//! https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 enum class RequestMethod {
+	//! The GET method request a representation of the specified resource.
 	GET,
-	POST
+	//! The HEAD method is identical to GET, but without the response body.    
+	HEAD,   
+	//! The POST method is used to submit an entity to the specified resource.
+	POST,   
+	//! The PUT method replaces all current representations of the target 
+	//! resource with the request payload.
+	PUT,  
+	//! The DELETE method deletes the specified resource.  
+	DELETE,
+	//! The CONNECT method establishes a tunnel to the server identified by the
+	//! target resource. 
+	CONNECT,
+	//! The OPTIONS method is used to describe the communication options for the 
+	//! target resource.
+	OPTIONS,
+	//! The TRACE method performs a message loop-back test along the path to the 
+	//! target resource.
+	TRACE,
+	// The PATCH method is used to apply partial modifications to a resource.
+	PATCH
 };
 	
+// Request shared ref Alias.
 using RequestRef = std::shared_ptr<struct Request>;
 
 struct Request {
@@ -55,18 +78,27 @@ struct Request {
 		switch( method ) {
 			case RequestMethod::GET: return "GET"; break;
 			case RequestMethod::POST: return "POST"; break;
-			default: return "GET"; break;
+			case RequestMethod::HEAD: return "HEAD"; break;
+			case RequestMethod::PUT: return "PUT"; break;
+			case RequestMethod::DELETE: return "DELETE"; break;
+			case RequestMethod::CONNECT: return "CONNECT"; break;
+			case RequestMethod::OPTIONS: return "OPTIONS"; break;
+			case RequestMethod::TRACE: return "TRACE"; break;
+			case RequestMethod::PATCH: return "PATCH"; break;
+			default: CI_ASSERT_MSG(false, "Unknown RequestMethod");
 		}
 	}
 	
+	//! Returns a reference to the underlying HeaderSet.
 	HeaderSet& getHeaders() { return mHeaderSet; }
+	//! Returns a const ref to the underlying HeaderSet.
 	const HeaderSet& getHeaders() const { return mHeaderSet; }
-	
+	//! Appends \a header to the underlying HeaderSet as type T.
 	template<typename T>
 	void appendHeader( T header );
-	
+	//! Sets the maximum amount of redirects before the request errors.
 	void maxRedirects( int32_t max ) { mMaxRedirects = max; }
-	
+	//! Sets the timeout of the request. Default is 0 or off.
 	template<typename DurationType>
 	void timeout( DurationType duration )
 	{
@@ -85,23 +117,25 @@ struct Request {
 	std::chrono::nanoseconds mTimeout{0};
 };
 
+//! Alias of a shared Response.
 using ResponseRef = std::shared_ptr<struct Response>;
 
 struct Response {
-	
 	//! Returns a pair of uint32_t representing the major, minor version number of HTTP
 	std::pair<uint32_t, uint32_t> getVersion() const { return{ versionMajor, versionMinor }; }
 	//! Sets the underlying /a major, /a minor HTTP version of this request
 	void setVersion( uint32_t major, uint32_t minor ) { versionMajor = major; versionMinor = minor; }
-	
+	//! Returns the status code of the request.
 	uint32_t getStatusCode() const { return statusCode; }
-	
+	//! Returns a reference to the underlying headerSet.
 	HeaderSet& getHeaders() { return headerSet; }
+	//! Returns a const ref to the underlying headerSet.
 	const HeaderSet& getHeaders() const { return headerSet; }
-	
+	//! Returns a reference to the underlying content of the response.
 	ci::BufferRef& getContent() { return headerSet.getContent(); }
+	//! Returns a const ref to the underlying content of the response.
 	const ci::BufferRef& getContent() const { return headerSet.getContent(); }
-	
+	//! Returns content converted to type T.
 	template<typename T>
 	T getContentAs();
 	

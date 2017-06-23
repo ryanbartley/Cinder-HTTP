@@ -16,6 +16,9 @@
 
 namespace cinder { namespace http {
 	
+// Alias for Header
+using Header = std::pair<std::string, std::string>;
+
 // Header representing basic authorization. 
 // https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side
 struct BasicAuthorization {
@@ -108,7 +111,7 @@ private:
 // Forward declaration.
 struct MultipartFormData;
 	
-// Represents and encapsulates multiple related headers.
+// Represents and encapsulates multiple headers related to 'content' functionality.
 struct Content {
 	// Represents Content-Length header.
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
@@ -175,11 +178,14 @@ struct Content {
 	{
 		memcpy( mContent->getData(), content.data(), mContent->getSize() );
 	}
-
+	// Constructor taking \a content_type, and \a content, as a ci::BufferRef. Length initialized as the size 
+	// of \a content. Encoding defaults to IDENTITY.
 	Content( std::string content_type, ci::BufferRef content )
 	: mLength( content->getSize() ), mType( std::move( content_type ) ),
 		mContent( content ), mEncoding( Encoding::Type::IDENTITY )
 	{}
+	// Constructor taking \a content_type, \a content, as a ci::BufferRef, and \a encodingType. Length 
+	// initialized as the size of content. 
 	Content( std::string content_type, ci::BufferRef content, Encoding::Type encodingType )
 	: mLength( content->getSize() ), mType( std::move( content_type ) ),
 		mContent( content ), mEncoding( encodingType )
@@ -202,30 +208,49 @@ private:
 	Encoding		mEncoding;
 	ci::BufferRef	mContent;
 };
-	
+
+// Header describing the location of a redirect. Response header.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location
 struct Location {
+	// Constructor taking \a location as the url for the redirect url.
 	Location( const std::string &location ) : mLocation( location ) {}
+	// Returns const char* header value.
 	static const char* key() { return "Location"; }
+	// Returns std::string header value.
 	std::string value() { return mLocation; }
 private:
 	std::string mLocation;
 };
 
+// Helper class to encode request content in multipart/form-data.
 struct MultipartFormData {
+	// Constructor taking \a delimiter. Delimiter should be formally unique
+	// from any characters in the data. Usually using a random seeded from
+	// time should do the trick.
 	MultipartFormData( std::string delimiter )
 	: delimiter( move( delimiter ) )
 	{
 	}
+	// Copy constructor deleted.
 	MultipartFormData( const MultipartFormData &other ) = delete;
+	// Copy assignment deleted.
 	MultipartFormData& operator=( const MultipartFormData &other ) = delete;
+	// Move constructor default.
 	MultipartFormData( MultipartFormData &&other ) noexcept = default;
+	// Move assignment default.
 	MultipartFormData& operator=( MultipartFormData &&other ) noexcept = default;
 	
+	// Helper struct representing part of multipart.
 	struct Part {
+		// Default constructor.
 		Part() = default;
+		// Copy constructor deleted.
 		Part( const Part & other ) = delete;
+		// Copy assignment deleted.
 		Part& operator=( const Part &other ) = delete;
+		// Move constructor default.
 		Part( Part &&other ) noexcept = default;
+		// Move assignment default.
 		Part& operator=( Part &&other ) noexcept = default;
 		
 		//! Set header of this part with \a key and \a value.
@@ -253,6 +278,8 @@ struct MultipartFormData {
 		}
 		
 		std::vector<std::pair<std::string, std::string>>	headers;
+		// TODO: should this be ci::Buffer or should the buffers above be
+		// std::vector<uint8_t>
 		std::vector<uint8_t>								data;
 	};
 	//! Append a part of the multipart data to the back.
@@ -264,8 +291,11 @@ struct MultipartFormData {
 	std::string			delimiter;
 	std::vector<Part>	parts;
 };
-	
+
+// Header representing the encoding from the server. Response header.
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Transfer-Encoding
 struct TransferEncoding {
+	// Possible encodings enum.
 	enum class Type {
 		CHUNKED,
 		COMPRESS,
@@ -273,10 +303,11 @@ struct TransferEncoding {
 		GZIP,
 		IDENTITY
 	};
-	
+	// Constructor taking \a type of encoding.
 	TransferEncoding( Type type ) : type( type ) {}
-	
+	// Returns const char* representing header key.
 	static const char* key() { return "Transfer-Encoding"; }
+	// Returns std::string representing header value.
 	std::string value() {
 		switch( type ) {
 			case Type::CHUNKED: return "chunked";
@@ -286,6 +317,7 @@ struct TransferEncoding {
 			case Type::IDENTITY: return "identity";
 		}
 	}
+
 private:
 	Type type;
 };
@@ -322,6 +354,40 @@ private:
 	
 	friend std::ostream& operator<<( std::ostream &stream, const HeaderSet &headers );
 };
+
+struct HeaderSet {
+	using Headers = std::vector<Header>;
+	HeaderSet() = default;
+	
+	//! Returns a const ref to the headers attached to this request
+	const Headers& getHeaders() const { return headers; }
+	Headers& getHeaders() { return headers; }
+	//! Adds /a header to the set of headers with /a headerValue, doesn't replace
+	void appendHeader( const std::string &header, const std::string &headerValue );
+	//! Changes the value of /a header to /a headerValue
+	void changeHeader( std::string header, std::string headerValue );
+	
+	template<typename T>
+	void appendHeader( T header );
+	
+	const Header* findHeader( const std::string &headerKey ) const;
+	const Header* findHeader( const char *headerKey ) const;
+	
+	//! Returns a const ref to the content attached to this request
+	const ci::BufferRef& getContent() const { return content; }
+	ci::BufferRef& getContent() { return content; }
+	//! Sets content for this request, creating a header for Content-Type and Content-Length
+	//! as well as setting the content
+	
+private:
+	
+	Headers			headers;
+	ci::BufferRef	content;
+	
+	friend std::ostream& operator<<( std::ostream &stream, const HeaderSet &headers );
+};
+
+// Implementations...
 	
 Content::Content( const MultipartFormData &data )
 : mType( "multipart/form-data; boundary=" + data.delimiter ),
