@@ -356,7 +356,7 @@ private:
 
 // Implementations...
 	
-Content::Content( const MultipartFormData &data )
+inline Content::Content( const MultipartFormData &data )
 : mType( "multipart/form-data; boundary=" + data.delimiter ),
 	mEncoding( Encoding::Type::IDENTITY ), mLength( 0 )
 {
