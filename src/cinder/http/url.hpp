@@ -271,6 +271,7 @@ public:
    * @endcode
    */
   inline std::string to_string(int components = all_components) const;
+  inline std::string to_escaped_string(int components = all_components) const;
 
   /// Converts a string representation of a URL into an object of class @c url.
   /**
@@ -327,6 +328,10 @@ public:
 
 private:
   inline static bool unescape_path(const std::string& in, std::string& out);
+  // Found parts of this implementation from this stackoverflow post.
+  // http://stackoverflow.com/questions/154536/encode-decode-urls-in-c
+  // still needs work. not exactly what i want.
+  inline static bool escape_path(const std::string& in, std::string& out);
 
   std::string protocol_;
   std::string user_info_;

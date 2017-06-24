@@ -136,6 +136,60 @@ std::string Url::to_string(int components) const
 
   return s;
 }
+	
+std::string Url::to_escaped_string(int components) const
+{
+  std::string s;
+		
+  if ((components & protocol_component) != 0 && !protocol_.empty())
+  {
+	  s = protocol_;
+	  s += "://";
+  }
+		
+  if ((components & user_info_component) != 0 && !user_info_.empty())
+  {
+	  escape_path( user_info_, s );
+	  s += "@";
+  }
+		
+  if ((components & host_component) != 0)
+  {
+	  if (ipv6_host_)
+		  s += "[";
+	  s += host_;
+	  if (ipv6_host_)
+		  s += "]";
+  }
+		
+  if ((components & port_component) != 0 && !port_.empty())
+  {
+	  s += ":";
+	  s += port_;
+  }
+		
+  if ((components & path_component) != 0 )
+  {
+	  if(!path_.empty())
+		  escape_path( path_, s );
+	  else
+		  s += "/";
+  }
+		
+  if ((components & query_component) != 0 && !query_.empty())
+  {
+	  s += "?";
+	  escape_path( query_, s );
+  }
+		
+  if ((components & fragment_component) != 0 && !fragment_.empty())
+  {
+	  s += "#";
+	  escape_path( fragment_, s );
+  }
+		
+  return s;
+}
 
 Url Url::from_string(const char* s, asio::error_code& ec)
 {
@@ -335,11 +389,36 @@ bool Url::unescape_path(const std::string& in, std::string& out)
   return true;
 }
 	
-std::string Url::escape_path(const std::string &in)
+bool Url::escape_path(const std::string& in, std::string& out )
 {
-	// Needs implementation.
+	std::ostringstream escaped;
+	escaped.fill('0');
+	escaped << std::hex;
 	
-	return in;
+	for ( auto c : in ) {
+		switch( c ) {
+			case '-': case '_': case '.': case '!': case '~': case '*':
+			case '\'': case '(': case ')': case ':': case '@': case '&':
+			case '=': case '+': case '$': case ',': case '/': case ';':
+				escaped << c;
+				break;
+			default: {
+				if( std::isalnum(c) ) {
+					escaped << c;
+				}
+				else {
+					// Any other characters are percent-encoded
+					escaped << std::uppercase;
+					escaped << '%' << std::setw(2) << int((unsigned char) c);
+					escaped << std::nouppercase;
+				}
+			}
+				break;
+		}
+	}
+	
+	out += escaped.str();
+	return true;
 }
 
 bool operator==(const Url& a, const Url& b)

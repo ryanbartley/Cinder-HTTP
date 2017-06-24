@@ -91,7 +91,7 @@ Responder<SessionType>::Responder( std::shared_ptr<SessionType> session )
 template<typename SessionType>
 inline void Responder<SessionType>::read()
 {
-	asio::async_read_until( mSession->socket, mReplyBuffer, "\r\n",
+	asio::async_read_until( mSession->socket(), mReplyBuffer, "\r\n",
 						    std::bind( &Responder<SessionType>::on_read_status,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
@@ -156,7 +156,7 @@ void Responder<SessionType>::on_read_status( asio::error_code ec, size_t bytes_t
 												   mResponse->statusCode ) )
 		{
 			ec = http::errc::malformed_status_line;
-			mSession->socket.get_io_service().post(
+			mSession->socket().get_io_service().post(
 				std::bind( &SessionType::onError, mSession, ec ) );
 			return;
 		}
@@ -168,7 +168,7 @@ void Responder<SessionType>::on_read_status( asio::error_code ec, size_t bytes_t
 			// Read list of headers and save them. If there's anything left in the
 			// reply buffer afterwards, it's the start of the content returned by the
 			// HTTP server.
-			asio::async_read_until( mSession->socket, mReplyBuffer, "\r\n\r\n",
+			asio::async_read_until( mSession->socket(), mReplyBuffer, "\r\n\r\n",
 								    std::bind( &Responder<SessionType>::on_read_headers,
 											   this->shared_from_this(),
 											   std::placeholders::_1,
@@ -176,7 +176,7 @@ void Responder<SessionType>::on_read_status( asio::error_code ec, size_t bytes_t
 		}
 	}
 	else
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 }
 	
@@ -192,7 +192,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 											   mResponse->headerSet.getHeaders() ) )
 		{
 			ec = http::errc::malformed_response_headers;
-			mSession->socket.get_io_service().post(
+			mSession->socket().get_io_service().post(
 				std::bind( &SessionType::onError, mSession, ec ) );
 			return;
 		}
@@ -203,7 +203,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 		
 		auto &headerSet = mResponse->headerSet.getHeaders();
 		std::sort( begin( headerSet ), end( headerSet ),
-				  []( const HeaderSet::Header &a, const HeaderSet::Header &b ) {
+				  []( const Header &a, const Header &b ) {
 					  return a.first < b.first;
 				  });
 		
@@ -214,7 +214,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 				content_length = atoi(contentLengthHeader->second.c_str());
 				if( content_length > 0 )
 					contentBuffer.reserve( content_length );
-				asio::async_read( mSession->socket, mReplyBuffer,
+				asio::async_read( mSession->socket(), mReplyBuffer,
 								asio::transfer_all(),
 								std::bind( &Responder<SessionType>::on_read_content,
 										  this->shared_from_this(),
@@ -223,14 +223,14 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 			}
 			else if( auto transferEncoding = mResponse->headerSet.findHeader( TransferEncoding::key() ) ) {
                 std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkHeaderMatchCondition();
-				asio::async_read_until( mSession->socket, mReplyBuffer, match,
+				asio::async_read_until( mSession->socket(), mReplyBuffer, match,
 							  std::bind( &Responder<SessionType>::on_read_chunk_header,
 										this->shared_from_this(),
 										std::placeholders::_1,
 										std::placeholders::_2 ));
 			}
 			else {
-				asio::async_read( mSession->socket, mReplyBuffer,
+				asio::async_read( mSession->socket(), mReplyBuffer,
 							  asio::transfer_at_least(1),
 							  std::bind( &Responder<SessionType>::on_read_content,
 										this->shared_from_this(),
@@ -241,9 +241,9 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 	}
 	
 	if( ec.value() >= 300 && ec.value() < 400  )
-		std::make_shared<Redirector<SessionType>>( mSession )->redirect();
+		std::make_shared<Redirector<SessionType>>( mSession, ec )->redirect();
 	else if( ec )
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 }
 	
@@ -253,7 +253,7 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	if ( ! ec ) {
 		read_transferred_data( bytes_transferred );
 		// Continue reading remaining data until EOF.
-		asio::async_read( mSession->socket, mReplyBuffer,
+		asio::async_read( mSession->socket(), mReplyBuffer,
 						  asio::transfer_at_least(1),
 						  std::bind( &Responder<SessionType>::on_read_content,
 									 this->shared_from_this(),
@@ -262,7 +262,7 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	}
 	else if ( ec == asio::error::eof ) {
 		finalize_buffer();
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 	}
 #if defined( USING_SSL )
@@ -271,7 +271,7 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	else if( ec.value() == 335544539 && bytes_transferred > 0 ) {
 		read_transferred_data( bytes_transferred );
 		// Continue reading remaining data until EOF.
-		asio::async_read( mSession->socket, mReplyBuffer,
+		asio::async_read( mSession->socket(), mReplyBuffer,
 						 asio::transfer_at_least(1),
 						 std::bind( &Responder<SessionType>::on_read_content,
 								   this->shared_from_this(),
@@ -280,12 +280,12 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	}
 	else if( ec.value() == 335544539 ) {
 		finalize_buffer();
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 	}
 #endif
 	else {
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }
@@ -305,7 +305,7 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		if( current_chunk_length != 0 ) {
 			// Continue reading remaining data until EOF.
             std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkMatchCondition( current_chunk_length );
-			asio::async_read_until( mSession->socket, mReplyBuffer, match,
+			asio::async_read_until( mSession->socket(), mReplyBuffer, match,
 							 std::bind( &Responder<SessionType>::on_read_chunk,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
@@ -313,7 +313,7 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		}
 		else {
 			// chunk is done.
-			asio::async_read_until( mSession->socket, mReplyBuffer, "\r\n",
+			asio::async_read_until( mSession->socket(), mReplyBuffer, "\r\n",
 								   std::bind( &Responder<SessionType>::on_finalize_chunks,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
@@ -321,7 +321,7 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		}
 	}
 	else {
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }
@@ -341,14 +341,14 @@ void Responder<SessionType>::on_read_chunk( asio::error_code ec, size_t bytes_tr
 		mReplyBuffer.consume( current_chunk_length + 2 );
 		// Continue reading remaining data until EOF.
         std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkHeaderMatchCondition();
-		asio::async_read_until( mSession->socket, mReplyBuffer, match,
+		asio::async_read_until( mSession->socket(), mReplyBuffer, match,
 							   std::bind( &Responder<SessionType>::on_read_chunk_header,
 										 this->shared_from_this(),
 										 std::placeholders::_1,
 										 std::placeholders::_2 ));
 	}
 	else {
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }
@@ -365,19 +365,19 @@ void Responder<SessionType>::on_finalize_chunks( asio::error_code ec, size_t byt
 		// Ugly but works. TODO: Check other options about finalizing buffers.
 		extract_buffer();
 		
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 		
 	}
 #if defined( USING_SSL )
 	else if( ec == asio::error::eof /*|| ec == asio::ssl::error::stream_truncated*/ ) {
 		finalize_buffer();
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 	}
 #endif
 	else {
-		mSession->socket.get_io_service().post(
+		mSession->socket().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }
