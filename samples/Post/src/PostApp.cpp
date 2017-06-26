@@ -80,7 +80,7 @@ void PostApp::setup()
 #if defined(USING_SSL)
 	else if( url->port() == 443 ) {
 		sslSession = std::make_shared<http::SslSession>( request, onComplete, onError );
-		sslSession->start();
+		//sslSession->start();
 	}
 #else 
 	else {

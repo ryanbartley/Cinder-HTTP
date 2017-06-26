@@ -23,7 +23,7 @@ namespace http {
 namespace detail {
 
 template <typename SessionType>
-class Redirector : public std::enable_shared_from_this<Redirector<SessionType>> {
+struct Redirector : public std::enable_shared_from_this<Redirector<SessionType>> {
 public:
 	Redirector( std::shared_ptr<SessionType> session, asio::error_code originatingError );
 	
@@ -44,7 +44,7 @@ void Redirector<SessionType>::redirect()
 {
 	auto &request = *mSession->request;
 	if( request.mMaxRedirects != -1 ) {
-		if( mSession->attempted_redirects < request.mMaxRedirects ) {
+		if( mSession->attempted_redirects < static_cast<uint32_t>(request.mMaxRedirects) ) {
 			mSession->attempted_redirects++;
 			mSession->socket().get_io_service().post(
 				std::bind( &SessionType::onError, mSession, mOriginatingError ) );

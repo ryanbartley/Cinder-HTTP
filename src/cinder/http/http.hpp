@@ -47,14 +47,14 @@ namespace detail {
 struct Session {
 public:
 	Session( asio::io_service &service, const UrlRef &url )
-	: socket_impl( service )
+	: mSocket( service )
 	{}
 	
 protected:
-	asio::ip::tcp::socket& socket() { return socket_impl; }
-	void cancel() { socket_impl.cancel(); };
+	asio::ip::tcp::socket& socket() { return mSocket; }
+	void cancel() { mSocket.cancel(); };
 	
-	asio::ip::tcp::socket	socket_impl;
+	asio::ip::tcp::socket	mSocket;
 };
 
 #if defined(USING_SSL)
@@ -62,20 +62,20 @@ struct SslSession {
 public:
 	SslSession( asio::io_service &service, const UrlRef &url )
 	: context(asio::ssl::context::tlsv12_client),
-		socket_impl( service, context )
+		mSocket( service, context )
 	{
 		context.set_default_verify_paths();
 		auto &&host = url->host();
 		auto &&verification = asio::ssl::rfc2818_verification{std::move(host)};
-		socket_impl.set_verify_callback(verification);
+		mSocket.set_verify_callback(verification);
 	}
 	
 protected:
-	asio::ip::tcp::socket& socket() { return socket_impl.next_layer(); }
-	void cancel() { socket_impl.next_layer().cancel(); }
+	asio::ip::tcp::socket& socket() { return mSocket.next_layer(); }
+	void cancel() { mSocket.next_layer().cancel(); }
 	
-	asio::ssl::context						context;
-	asio::ssl::stream<asio::ip::tcp::socket> socket_impl;
+	asio::ssl::context							context;
+	asio::ssl::stream<asio::ip::tcp::socket>	mSocket;
 };
 #endif
 

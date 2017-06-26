@@ -9,6 +9,11 @@
 #include <sstream>
 #include <string>
 
+
+#if defined(_WIN32)
+#undef DELETE	
+#endif
+
 #include "url.hpp"
 #include "headers.hpp"
 #include "cinder/Base64.h"
@@ -85,7 +90,7 @@ struct Request {
 			case RequestMethod::OPTIONS: return "OPTIONS"; break;
 			case RequestMethod::TRACE: return "TRACE"; break;
 			case RequestMethod::PATCH: return "PATCH"; break;
-			default: CI_ASSERT_MSG(false, "Unknown RequestMethod");
+			default: CI_ASSERT_MSG( false, "Unknown RequestMethod" ); return ""; break;
 		}
 	}
 	
@@ -234,3 +239,7 @@ inline Json::Value Response::getContentAs<Json::Value>()
 
 } // http
 } // cinder
+
+#if defined(_WIN32)
+#define DELETE                           (0x00010000L)
+#endif

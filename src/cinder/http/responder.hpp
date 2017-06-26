@@ -40,7 +40,7 @@ struct ReadChunkHeaderMatchCondition {
 struct ReadChunkMatchCondition {
     ReadChunkMatchCondition( size_t chunkSize ) : mChunkSize( chunkSize ) {}
     std::pair<iterator, bool> operator()( iterator begin, iterator end ) {
-        auto dist = std::distance( begin, end );
+        auto dist = static_cast<size_t>(std::distance( begin, end ));
         if( dist > mChunkSize + 2 ) {
             auto endChunkIter = begin + mChunkSize;
             CI_ASSERT( *(endChunkIter) == '\r' && *(endChunkIter + 1) == '\n' );

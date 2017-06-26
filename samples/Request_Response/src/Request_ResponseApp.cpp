@@ -29,7 +29,7 @@ public:
 void TestApp::setup()
 {
 	httpUrl = std::make_shared<http::Url>( "http://www.lingosolutions.co.uk/wp-content/uploads/2016/05/HTTP-wallpaper.jpg" );
-	httpsUrl = std::make_shared<http::Url>( "https://upload.wikimedia.org/wikipedia/commons/d/da/Internet2.jpg" );
+	httpsUrl = std::make_shared<http::Url>( "https://www.brightedge.com/blog/wp-content/uploads/2016/02/HTTPs.jpg" );
 	
 	makeRequest( httpUrl );
 }

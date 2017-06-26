@@ -15,6 +15,8 @@
 #include "url.hpp"
 #include "request_response.hpp"
 #include "asio/asio.hpp"
+#include "cinder/Log.h"
+#include "cinder/app/App.h"
 
 namespace cinder {
 namespace http { namespace detail {
@@ -29,6 +31,7 @@ public:
 	{
 		std::ostream request_stream( &mRequestBuffer );
 		mRequest->process( request_stream );
+		mRequest->process( ci::app::console() );
 		asio::async_write(this->mSession->socket(), mRequestBuffer,
 						  asio::transfer_all(),
 						  std::bind( &Requester<SessionType>::on_request,
