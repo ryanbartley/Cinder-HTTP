@@ -236,9 +236,18 @@ struct MultipartFormData {
 	// Copy assignment deleted.
 	MultipartFormData& operator=( const MultipartFormData &other ) = delete;
 	// Move constructor default.
-	MultipartFormData( MultipartFormData &&other ) noexcept = default;
+	MultipartFormData( MultipartFormData &&other ) noexcept
+	: delimiter( std::move( other.delimiter ) ), parts( std::move( other.parts ) )
+	{}
 	// Move assignment default.
-	MultipartFormData& operator=( MultipartFormData &&other ) noexcept = default;
+	MultipartFormData& operator=( MultipartFormData &&other ) noexcept
+	{
+		if( this != &other ) {
+			delimiter = std::move( other.delimiter );
+			parts = std::move( other.parts );
+		}
+		return *this;
+	}
 	
 	// Helper struct representing part of multipart.
 	struct Part {
@@ -249,9 +258,18 @@ struct MultipartFormData {
 		// Copy assignment deleted.
 		Part& operator=( const Part &other ) = delete;
 		// Move constructor default.
-		Part( Part &&other ) noexcept = default;
+		Part( Part &&other ) noexcept
+		: headers( std::move( other.headers ) ), data( std::move( other.data ) )
+		{}
 		// Move assignment default.
-		Part& operator=( Part &&other ) noexcept = default;
+		Part& operator=( Part &&other ) noexcept
+		{
+			if( this != &other ) {
+				headers = std::move( other.headers );
+				data = std::move( other.data );
+			}
+			return *this;
+		}
 		
 		//! Set header of this part with \a key and \a value.
 		void appendHeader( const std::string &key, const std::string &value )
