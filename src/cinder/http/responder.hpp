@@ -63,7 +63,7 @@ private:
 	void on_read_headers( asio::error_code ec, size_t lengthRead );
 	void on_read_content( asio::error_code ec, size_t lengthRead );
 	// chunk reading
-    void on_read_chunk_header( asio::error_code ec, size_t lengthRead );
+  void on_read_chunk_header( asio::error_code ec, size_t lengthRead );
 	void on_read_chunk( asio::error_code ec, size_t lengthRead );
 	void on_finalize_chunks( asio::error_code ec, size_t lengthRead );
 	
@@ -72,13 +72,13 @@ private:
 	void extract_buffer();
 	
 	std::shared_ptr<SessionType>	mSession;
-	asio::streambuf					mReplyBuffer;
-	ResponseRef						mResponse;
-	std::vector<uint8_t>			contentBuffer;
-	size_t							writeHead{0},
-									content_length{0},
-									current_chunk_length{0};
-	bool							content_encoded{false};
+	asio::streambuf					      mReplyBuffer;
+	ResponseRef						        mResponse;
+	std::vector<uint8_t>			    mContentBuffer;
+	size_t							          mWriteHead{0},
+									              mContentLength{0},
+									              mCurrentChunkLength{0};
+	bool							            mContentEncoded{false};
 };
 
 template<typename SessionType>
@@ -91,7 +91,7 @@ Responder<SessionType>::Responder( std::shared_ptr<SessionType> session )
 template<typename SessionType>
 inline void Responder<SessionType>::read()
 {
-	asio::async_read_until( mSession->socket(), mReplyBuffer, "\r\n",
+	asio::async_read_until( mSession->stream(), mReplyBuffer, "\r\n",
 						    std::bind( &Responder<SessionType>::on_read_status,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
@@ -104,10 +104,10 @@ void Responder<SessionType>::read_transferred_data( size_t bytes_transferred )
 	// Write all of the data that has been read so far.
 	auto begIt = asio::buffers_begin( mReplyBuffer.data() );
 	// Copy out all data
-	contentBuffer.insert( contentBuffer.end(), begIt, begIt + bytes_transferred );
+	mContentBuffer.insert( mContentBuffer.end(), begIt, begIt + bytes_transferred );
 	// Consume the response buffer
 	mReplyBuffer.consume(bytes_transferred);
-	writeHead += bytes_transferred;
+	mWriteHead += bytes_transferred;
 }
 
 template<typename SessionType>
@@ -117,7 +117,7 @@ void Responder<SessionType>::finalize_buffer()
 	auto begIt = asio::buffers_begin( mReplyBuffer.data() );
 	auto endIt = asio::buffers_end( mReplyBuffer.data() );
 	// Copy out all data
-	contentBuffer.insert( contentBuffer.end(), begIt, endIt );
+	mContentBuffer.insert( mContentBuffer.end(), begIt, endIt );
 	// Consume the response buffer
 	mReplyBuffer.consume(endIt - begIt);
 	
@@ -127,8 +127,8 @@ void Responder<SessionType>::finalize_buffer()
 template<typename SessionType>
 void Responder<SessionType>::extract_buffer()
 {
-	if( content_encoded ) {
-		auto encoded_buf = ci::Buffer( contentBuffer.data(), contentBuffer.size() );
+	if( mContentEncoded ) {
+		auto encoded_buf = ci::Buffer( mContentBuffer.data(), mContentBuffer.size() );
 		auto header = mResponse->headerSet.findHeader( Content::Encoding::key() );
 		CI_ASSERT( header );
 		auto &val = header->second;
@@ -137,9 +137,9 @@ void Responder<SessionType>::extract_buffer()
 	}
 	else {
 		auto &buf = mResponse->getContent();
-		auto size = contentBuffer.size();
+		auto size = mContentBuffer.size();
 		buf = ci::Buffer::create( size );
-		memcpy( buf->getData(), contentBuffer.data(), size );
+		memcpy( buf->getData(), mContentBuffer.data(), size );
 	}
 }
 	
@@ -156,7 +156,7 @@ void Responder<SessionType>::on_read_status( asio::error_code ec, size_t bytes_t
 												   mResponse->statusCode ) )
 		{
 			ec = http::errc::malformed_status_line;
-			mSession->socket().get_io_service().post(
+			mSession->stream().get_io_service().post(
 				std::bind( &SessionType::onError, mSession, ec ) );
 			return;
 		}
@@ -168,7 +168,7 @@ void Responder<SessionType>::on_read_status( asio::error_code ec, size_t bytes_t
 			// Read list of headers and save them. If there's anything left in the
 			// reply buffer afterwards, it's the start of the content returned by the
 			// HTTP server.
-			asio::async_read_until( mSession->socket(), mReplyBuffer, "\r\n\r\n",
+			asio::async_read_until( mSession->stream(), mReplyBuffer, "\r\n\r\n",
 								    std::bind( &Responder<SessionType>::on_read_headers,
 											   this->shared_from_this(),
 											   std::placeholders::_1,
@@ -176,7 +176,7 @@ void Responder<SessionType>::on_read_status( asio::error_code ec, size_t bytes_t
 		}
 	}
 	else
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 }
 	
@@ -192,7 +192,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 											   mResponse->headerSet.getHeaders() ) )
 		{
 			ec = http::errc::malformed_response_headers;
-			mSession->socket().get_io_service().post(
+			mSession->stream().get_io_service().post(
 				std::bind( &SessionType::onError, mSession, ec ) );
 			return;
 		}
@@ -207,14 +207,14 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 					  return a.first < b.first;
 				  });
 		
-		content_encoded = mResponse->headerSet.findHeader( Content::Encoding::key() ) != nullptr;
+		mContentEncoded = mResponse->headerSet.findHeader( Content::Encoding::key() ) != nullptr;
 		
 		if( ! ec ) {
 			if( auto contentLengthHeader = mResponse->headerSet.findHeader( Content::Length::key() ) ) {
-				content_length = atoi(contentLengthHeader->second.c_str());
-				if( content_length > 0 )
-					contentBuffer.reserve( content_length );
-				asio::async_read( mSession->socket(), mReplyBuffer,
+				mContentLength = atoi(contentLengthHeader->second.c_str());
+				if( mContentLength > 0 )
+					mContentBuffer.reserve( mContentLength );
+				asio::async_read( mSession->stream(), mReplyBuffer,
 								asio::transfer_all(),
 								std::bind( &Responder<SessionType>::on_read_content,
 										  this->shared_from_this(),
@@ -223,14 +223,14 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 			}
 			else if( auto transferEncoding = mResponse->headerSet.findHeader( TransferEncoding::key() ) ) {
                 std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkHeaderMatchCondition();
-				asio::async_read_until( mSession->socket(), mReplyBuffer, match,
+				asio::async_read_until( mSession->stream(), mReplyBuffer, match,
 							  std::bind( &Responder<SessionType>::on_read_chunk_header,
 										this->shared_from_this(),
 										std::placeholders::_1,
 										std::placeholders::_2 ));
 			}
 			else {
-				asio::async_read( mSession->socket(), mReplyBuffer,
+				asio::async_read( mSession->stream(), mReplyBuffer,
 							  asio::transfer_at_least(1),
 							  std::bind( &Responder<SessionType>::on_read_content,
 										this->shared_from_this(),
@@ -243,7 +243,7 @@ void Responder<SessionType>::on_read_headers( asio::error_code ec, size_t bytes_
 	if( ec.value() >= 300 && ec.value() < 400  )
 		std::make_shared<Redirector<SessionType>>( mSession, ec )->redirect();
 	else if( ec )
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 }
 	
@@ -253,7 +253,7 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	if ( ! ec ) {
 		read_transferred_data( bytes_transferred );
 		// Continue reading remaining data until EOF.
-		asio::async_read( mSession->socket(), mReplyBuffer,
+		asio::async_read( mSession->stream(), mReplyBuffer,
 						  asio::transfer_at_least(1),
 						  std::bind( &Responder<SessionType>::on_read_content,
 									 this->shared_from_this(),
@@ -262,7 +262,7 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	}
 	else if ( ec == asio::error::eof ) {
 		finalize_buffer();
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 	}
 #if defined( USING_SSL )
@@ -271,7 +271,7 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	else if( ec.value() == 335544539 && bytes_transferred > 0 ) {
 		read_transferred_data( bytes_transferred );
 		// Continue reading remaining data until EOF.
-		asio::async_read( mSession->socket(), mReplyBuffer,
+		asio::async_read( mSession->stream(), mReplyBuffer,
 						 asio::transfer_at_least(1),
 						 std::bind( &Responder<SessionType>::on_read_content,
 								   this->shared_from_this(),
@@ -280,12 +280,12 @@ void Responder<SessionType>::on_read_content( asio::error_code ec, size_t bytes_
 	}
 	else if( ec.value() == 335544539 ) {
 		finalize_buffer();
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 	}
 #endif
 	else {
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }
@@ -300,12 +300,12 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		auto hex = bytes.substr( 0, bytes.find( "\r\n" ) );
 		std::stringstream ss;
 		ss << std::hex << hex;
-		ss >> current_chunk_length;
+		ss >> mCurrentChunkLength;
 		mReplyBuffer.consume( bytes_transferred );
-		if( current_chunk_length != 0 ) {
+		if( mCurrentChunkLength != 0 ) {
 			// Continue reading remaining data until EOF.
-            std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkMatchCondition( current_chunk_length );
-			asio::async_read_until( mSession->socket(), mReplyBuffer, match,
+            std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkMatchCondition( mCurrentChunkLength );
+			asio::async_read_until( mSession->stream(), mReplyBuffer, match,
 							 std::bind( &Responder<SessionType>::on_read_chunk,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
@@ -313,7 +313,7 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		}
 		else {
 			// chunk is done.
-			asio::async_read_until( mSession->socket(), mReplyBuffer, "\r\n",
+			asio::async_read_until( mSession->stream(), mReplyBuffer, "\r\n",
 								   std::bind( &Responder<SessionType>::on_finalize_chunks,
 									   this->shared_from_this(),
 									   std::placeholders::_1,
@@ -321,7 +321,7 @@ void Responder<SessionType>::on_read_chunk_header( asio::error_code ec, size_t b
 		}
 	}
 	else {
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }
@@ -332,23 +332,23 @@ void Responder<SessionType>::on_read_chunk( asio::error_code ec, size_t bytes_tr
 	if ( ! ec ) {
 		// Write all of the data that has been read so far.
 		auto begIt = asio::buffers_begin(mReplyBuffer.data());
-		if (current_chunk_length != bytes_transferred - 3)
-			CI_LOG_W("current_chunk_length: " << current_chunk_length << ", doesn't match bytes_transferred: "
+		if (mCurrentChunkLength != bytes_transferred - 3)
+			CI_LOG_W("current_chunk_length: " << mCurrentChunkLength << ", doesn't match bytes_transferred: "
 											  << bytes_transferred);
 		// Copy out all data
-		contentBuffer.insert( contentBuffer.end(), begIt, begIt + current_chunk_length );
+		mContentBuffer.insert( mContentBuffer.end(), begIt, begIt + mCurrentChunkLength );
 		// Consume the response buffer
-		mReplyBuffer.consume( current_chunk_length + 2 );
+		mReplyBuffer.consume( mCurrentChunkLength + 2 );
 		// Continue reading remaining data until EOF.
         std::function<std::pair<iterator, bool>( iterator, iterator )> match = ReadChunkHeaderMatchCondition();
-		asio::async_read_until( mSession->socket(), mReplyBuffer, match,
+		asio::async_read_until( mSession->stream(), mReplyBuffer, match,
 							   std::bind( &Responder<SessionType>::on_read_chunk_header,
 										 this->shared_from_this(),
 										 std::placeholders::_1,
 										 std::placeholders::_2 ));
 	}
 	else {
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }
@@ -365,19 +365,19 @@ void Responder<SessionType>::on_finalize_chunks( asio::error_code ec, size_t byt
 		// Ugly but works. TODO: Check other options about finalizing buffers.
 		extract_buffer();
 		
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 		
 	}
 #if defined( USING_SSL )
 	else if( ec == asio::error::eof /*|| ec == asio::ssl::error::stream_truncated*/ ) {
 		finalize_buffer();
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onResponse, mSession, ec ) );
 	}
 #endif
 	else {
-		mSession->socket().get_io_service().post(
+		mSession->stream().get_io_service().post(
 			std::bind( &SessionType::onError, mSession, ec ) );
 	}
 }

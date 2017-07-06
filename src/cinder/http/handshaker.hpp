@@ -36,7 +36,7 @@ struct Handshaker : std::enable_shared_from_this<Handshaker<SessionType>> {
 						 std::bind( &Handshaker<SessionType>::on_handshake,
 									this->shared_from_this(), 
 									std::placeholders::_1 ),
-						 mSession->socket() );
+						 mSession->stream() );
 	}
 	
 private:

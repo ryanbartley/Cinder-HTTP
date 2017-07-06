@@ -52,6 +52,7 @@ public:
 	
 protected:
 	asio::ip::tcp::socket& socket() { return mSocket; }
+  asio::ip::tcp::socket& stream() { return mSocket; }
 	void cancel() { mSocket.cancel(); };
 	
 	asio::ip::tcp::socket	mSocket;
@@ -72,6 +73,7 @@ public:
 	
 protected:
 	asio::ip::tcp::socket& socket() { return mSocket.next_layer(); }
+  asio::ssl::stream<asio::ip::tcp::socket>& stream() { return mSocket; }
 	void cancel() { mSocket.next_layer().cancel(); }
 	
 	asio::ssl::context							context;
@@ -103,7 +105,7 @@ public:
 		if( request->mTimeout != std::chrono::nanoseconds(0) )
 			createTimeout( request->mTimeout );
 		std::make_shared<detail::Connector<ClientImpl>>(
-				this->shared_from_this(), socket_impl::socket() )->start();
+				this->shared_from_this() )->start();
 	}
 	
 	void start( asio::ip::tcp::endpoint endpoint )
@@ -111,7 +113,7 @@ public:
 		if( request->mTimeout != std::chrono::nanoseconds(0) )
 			createTimeout( request->mTimeout );
 		std::make_shared<detail::Connector<ClientImpl>>(
-				this->shared_from_this(), socket_impl::socket() )->start( endpoint );
+				this->shared_from_this() )->start( endpoint );
 	}
 	
 protected:

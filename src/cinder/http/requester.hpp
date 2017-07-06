@@ -31,8 +31,7 @@ public:
 	{
 		std::ostream request_stream( &mRequestBuffer );
 		mRequest->process( request_stream );
-		mRequest->process( ci::app::console() );
-		asio::async_write(this->mSession->socket(), mRequestBuffer,
+		asio::async_write(this->mSession->stream(), mRequestBuffer,
 						  asio::transfer_all(),
 						  std::bind( &Requester<SessionType>::on_request,
 									this->shared_from_this(),

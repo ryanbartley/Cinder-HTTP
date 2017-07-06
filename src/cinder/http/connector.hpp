@@ -21,8 +21,8 @@ namespace http { namespace detail {
 template<typename SessionType>
 struct Connector : public std::enable_shared_from_this<Connector<SessionType>> {
 	
-	Connector( std::shared_ptr<SessionType> session, asio::ip::tcp::socket &socket )
-	: mSession( session ), mSocket( socket ), mResolver( socket.get_io_service() ) {}
+	Connector( std::shared_ptr<SessionType> session )
+	: mSession( session ), mSocket( session->socket() ), mResolver( mSocket.get_io_service() ) {}
 	
 	void start();
 	void start( asio::ip::tcp::endpoint endpoint );
@@ -33,8 +33,8 @@ private:
 	void on_connecting_to_endpoint( asio::error_code ec );
 
 	std::shared_ptr<SessionType>	mSession;
-	asio::ip::tcp::resolver			mResolver;
-	asio::ip::tcp::socket			&mSocket;
+	asio::ip::tcp::socket			    &mSocket;
+	asio::ip::tcp::resolver			  mResolver;
 };
 
 template<typename SessionType>
